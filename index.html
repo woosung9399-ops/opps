@@ -3,13 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>오늘의 타로 · 분야별 해석</title>
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>오늘의 타로 · 분야별 해석</title>
+<title>오늘의 타로 · 무제한 랜덤</title>
 <style>
   :root{
     --bg:#0f0f14;--card:#181820;--accent:#7c5cff;--text:#f5f5f7;--muted:#b9b8c6;--good:#58d68d;--bad:#ff7675;
@@ -75,7 +69,6 @@
   }
   button.primary{background:linear-gradient(180deg, #7c5cff, #5f45e6); border-color:#7c5cff}
   button.ghost[aria-selected="true"]{outline:2px solid var(--accent)}
-  button:disabled{opacity:.6; cursor:not-allowed}
   .panel{
     background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px
   }
@@ -100,23 +93,23 @@
             <div id="card" class="card">
               <div class="face front" title="카드를 탭해 뒤집기">
                 <div class="sigil">🔮</div>
-                <div class="brand">TAROT · DAILY</div>
+                <div class="brand">TAROT · RANDOM</div>
               </div>
               <div class="face back">
                 <div style="width:100%;">
                   <div class="name" id="cardName">카드를 뽑아보세요</div>
                   <div class="dir" id="cardDir">정/역방향</div>
                   <div class="keywords" id="keywords"></div>
-                  <div class="advice" id="advice">오늘의 메시지가 여기에 표시됩니다.</div>
+                  <div class="advice" id="advice">여기에 메시지가 표시됩니다.</div>
                 </div>
               </div>
             </div>
           </div>
           <div class="btns" style="margin-top:10px">
-            <button id="drawBtn" class="primary">오늘의 카드 뽑기</button>
+            <button id="drawBtn" class="primary">카드 뽑기</button>
             <button id="flipBtn">카드 뒤집기</button>
             <button id="shareBtn">공유</button>
-            <button id="resetBtn" title="현재 결과를 지우고 다시 시도(보통 자정 이후 자동 초기화)">초기화</button>
+            <button id="resetBtn" title="화면 초기화">초기화</button>
           </div>
         </div>
 
@@ -140,11 +133,11 @@
       </div>
     </div>
 
-    <footer>정/역방향은 뽑을 때 자동 결정됩니다 · 하루 1회(오늘 날짜 기준) 고정</footer>
+    <footer>무제한 랜덤 버전 · 버튼을 누를 때마다 새로운 카드가 나옵니다</footer>
   </div>
 
 <script>
-/** -------- 타로 데이터(메이저 22장) + 기본 메시지 -------- */
+/** -------- 타로 데이터(메이저 22장) -------- */
 const MAJOR = [
   { n:"0. 바보 (The Fool) 🃏",
     u:["새출발","즉흥","자유"], r:["무모","불안정","방황"],
@@ -236,30 +229,13 @@ const MAJOR = [
     ar:"마무리 체크리스트로 누락을 막으세요." },
 ];
 
-/** -------- 유틸(시드 랜덤, 날짜키, 로컬스토리지) -------- */
-const pad = n => n.toString().padStart(2,"0");
-const todayKey = ()=>{
-  const now = new Date(); const y=now.getFullYear(), m=pad(now.getMonth()+1), d=pad(now.getDate());
-  return `${y}${m}${d}`;
-};
-function seededRandom(seedStr){
-  let h = 1779033703 ^ seedStr.length;
-  for (let i=0;i<seedStr.length;i++){ h=Math.imul(h ^ seedStr.charCodeAt(i),3432918353); h=(h<<13)|(h>>>19); }
-  return function(){
-    h = Math.imul(h ^ (h>>>16),2246822507);
-    h = Math.imul(h ^ (h>>>13),3266489909);
-    const t = (h ^= h>>>16) >>> 0;
-    return t/4294967296;
-  }
-}
-const saveToday = data => localStorage.setItem("tarot.daily."+todayKey(), JSON.stringify(data));
-const loadToday = () => { try{ const v=localStorage.getItem("tarot.daily."+todayKey()); return v?JSON.parse(v):null }catch(e){return null} }
-const clearToday = () => localStorage.removeItem("tarot.daily."+todayKey());
+/** -------- 유틸 & 분야별 해석 -------- */
+const dateText = document.getElementById("dateText");
+function fmtDateHuman(){ return new Intl.DateTimeFormat("ko-KR",{dateStyle:"full"}).format(new Date()).replace(/\s*역\s*$/,""); }
+dateText.textContent = fmtDateHuman();
 
-/** -------- 분야별 해석 생성기(카드·방향·키워드 기반, 날짜 시드로 변주) -------- */
-const pick = (rnd, arr)=> arr[Math.floor(rnd()*arr.length)];
-function domainAdvice(card, upright, domain, seed){
-  // 도메인별 템플릿
+const pick = (arr)=> arr[Math.floor(Math.random()*arr.length)];
+function domainAdvice(card, upright, domain){
   const T = {
     love:{
       u:[
@@ -304,22 +280,16 @@ function domainAdvice(card, upright, domain, seed){
       traps:["무이자에 방심","할인 유혹","정보 비대칭","수익률 과대평가"]
     }
   };
-  // 카드 성향에서 tone 추출
-  const tone = upright ? pick(seededRandom(seed+"tone"), ["맑고 경쾌한","안정적인","확장적인"])
-                       : pick(seededRandom(seed+"tone"), ["울퉁불퉁한","흐릿한","변덕스러운"]);
-  // 키워드 힌트
+  const tone = upright ? pick(["맑고 경쾌한","안정적인","확장적인"])
+                       : pick(["울퉁불퉁한","흐릿한","변덕스러운"]);
   const kws = upright ? card.u : card.r;
-  const kw = kws[0] || "흐름";
-  const rnd = seededRandom(seed+domain+card.n+(upright?"U":"R"));
-  const box = T[domain];
-  const tpl = upright ? pick(rnd, box.u) : pick(rnd, box.r);
-  const tip = pick(rnd, box.tips);
-  const trap = pick(rnd, box.traps);
-  return tpl.replace("{tone}", kw).replace("{tip}", tip).replace("{trap}", trap);
+  const tpl = upright ? pick(T[domain].u) : pick(T[domain].r);
+  const tip = pick(T[domain].tips);
+  const trap = pick(T[domain].traps);
+  return tpl.replace("{tone}", kws[0]||"흐름").replace("{tip}", tip).replace("{trap}", trap);
 }
 
-/** -------- 렌더/상호작용 -------- */
-const dateText = document.getElementById("dateText");
+/** -------- 엘리먼트 -------- */
 const cardEl   = document.getElementById("card");
 const nameEl   = document.getElementById("cardName");
 const dirEl    = document.getElementById("cardDir");
@@ -339,19 +309,17 @@ const line1 = document.getElementById("line1");
 const line2 = document.getElementById("line2");
 const line3 = document.getElementById("line3");
 
-function fmtDateHuman(){
-  const now = new Date();
-  const ds = new Intl.DateTimeFormat("ko-KR", { dateStyle:"full" }).format(now);
-  return ds.replace(/\s*역\s*$/,"");
-}
-dateText.textContent = fmtDateHuman();
+/** -------- 상태 -------- */
+let currentRes = null;
+let currentTab = "general";
 
+/** -------- 렌더링 -------- */
 function renderResult(res){
   if(!res){
     nameEl.textContent = "카드를 뽑아보세요";
     dirEl.textContent = "정/역방향";
     kwEl.innerHTML = "";
-    advEl.textContent = "오늘의 메시지가 여기에 표시됩니다.";
+    advEl.textContent = "여기에 메시지가 표시됩니다.";
     advEl.className = "advice";
     renderDomainPanel(null);
     return;
@@ -368,32 +336,6 @@ function renderResult(res){
   advEl.className = "advice " + (isUpright ? "good" : (res.idx===15||res.idx===16 ? "bad" : ""));
   renderDomainPanel(res);
 }
-
-function flipCard(toBack=true){
-  const flipped = cardEl.classList.contains("flipped");
-  if(toBack && !flipped) cardEl.classList.add("flipped");
-  if(!toBack && flipped) cardEl.classList.remove("flipped");
-}
-
-function drawToday(){
-  const seed = todayKey();
-  const rnd = seededRandom(seed);
-  const idx = Math.floor(rnd()*MAJOR.length);
-  const upright = rnd()<0.5;
-  const result = { key: seed, idx, upright, ts: Date.now() };
-  saveToday(result);
-  return result;
-}
-
-/** -------- 분야 탭 렌더링 -------- */
-let currentRes = null;
-let currentTab = "general";
-function setTab(tab){
-  currentTab = tab;
-  [tabGeneral,tabLove,tabWork,tabMoney].forEach(b=>b.setAttribute("aria-selected","false"));
-  ({"general":tabGeneral,"love":tabLove,"work":tabWork,"money":tabMoney}[tab]).setAttribute("aria-selected","true");
-  renderDomainPanel(currentRes);
-}
 function renderDomainPanel(res){
   if(!res){
     panelTitle.textContent = "오늘의 핵심";
@@ -401,82 +343,86 @@ function renderDomainPanel(res){
     line2.textContent = ""; line3.textContent = "";
     return;
   }
-  currentRes = res;
   const card = MAJOR[res.idx];
-  const seed = res.key;
   if(currentTab==="general"){
     panelTitle.textContent = "핵심 요약";
     line1.textContent = (res.upright?card.au:card.ar);
     line2.textContent = `키워드: ${(res.upright?card.u:card.r).join(", ")}`;
     line3.textContent = `카드: ${card.n} · ${res.upright?"정방향":"역방향"}`;
-    return;
-  }
-  const advLove  = domainAdvice(card, res.upright, "love",  seed);
-  const advWork  = domainAdvice(card, res.upright, "work",  seed);
-  const advMoney = domainAdvice(card, res.upright, "money", seed);
-  if(currentTab==="love"){
+  }else if(currentTab==="love"){
     panelTitle.textContent = "사랑 운세";
-    line1.textContent = advLove;
+    line1.textContent = domainAdvice(card, res.upright, "love");
     line2.textContent = "☑︎ 대화의 질 > 횟수 · 경계/기대치 조율";
     line3.textContent = "팁: 작은 친절/메시지로 리드해보세요.";
   }else if(currentTab==="work"){
     panelTitle.textContent = "일(커리어) 운세";
-    line1.textContent = advWork;
+    line1.textContent = domainAdvice(card, res.upright, "work");
     line2.textContent = "☑︎ 오늘 한 가지 완주 · 데이터로 설득";
     line3.textContent = "팁: 마감·의사결정 포인트를 먼저 적기";
   }else{
     panelTitle.textContent = "금전 운세";
-    line1.textContent = advMoney;
+    line1.textContent = domainAdvice(card, res.upright, "money");
     line2.textContent = "☑︎ 충동구매 방지 · 구독/고정비 점검";
     line3.textContent = "팁: 오늘은 비교·보류·예비비 강화";
   }
 }
 
-function applyExistingOrDraw(){
-  let res = loadToday();
-  if(!res) res = drawToday();
-  renderResult(res);
+/** -------- 동작 -------- */
+function flipCard(toBack=true){
+  const flipped = cardEl.classList.contains("flipped");
+  if(toBack && !flipped) cardEl.classList.add("flipped");
+  if(!toBack && flipped) cardEl.classList.remove("flipped");
+}
+function drawRandom(){
+  const idx = Math.floor(Math.random()*MAJOR.length);
+  const upright = Math.random() < 0.5;
+  return { idx, upright, ts: Date.now() };
+}
+function applyDraw(){
+  const res = drawRandom();
   currentRes = res;
-  setTimeout(()=>flipCard(true), 300);
-  drawBtn.disabled = true;
+  renderResult(res);
+  setTimeout(()=>flipCard(true), 250);
+}
+function setTab(tab){
+  currentTab = tab;
+  [tabGeneral,tabLove,tabWork,tabMoney].forEach(b=>b.setAttribute("aria-selected","false"));
+  ({"general":tabGeneral,"love":tabLove,"work":tabWork,"money":tabMoney}[tab]).setAttribute("aria-selected","true");
+  renderDomainPanel(currentRes);
 }
 
-drawBtn.addEventListener("click", applyExistingOrDraw);
+/** -------- 이벤트 -------- */
+drawBtn.addEventListener("click", applyDraw);
 flipBtn.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
 cardEl.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
 resetBtn.addEventListener("click", ()=>{
-  clearToday(); renderResult(null); flipCard(false); drawBtn.disabled = false; setTab("general");
+  currentRes = null;
+  renderResult(null);
+  flipCard(false);
 });
 shareBtn.addEventListener("click", async ()=>{
-  const cur = loadToday();
-  if(!cur){ alert("아직 오늘의 카드를 뽑지 않았어요!"); return; }
-  const c = MAJOR[cur.idx];
-  const dir = cur.upright ? "정방향" : "역방향";
-  const kws = (cur.upright ? c.u : c.r).join(", ");
+  if(!currentRes){ alert("먼저 카드를 뽑아주세요!"); return; }
+  const c = MAJOR[currentRes.idx];
+  const dir = currentRes.upright ? "정방향" : "역방향";
+  const kws = (currentRes.upright ? c.u : c.r).join(", ");
   const msg = `🔮 오늘의 타로 (${fmtDateHuman()})
 카드: ${c.n} · ${dir}
 키워드: ${kws}
-핵심: ${cur.upright ? c.au : c.ar}`;
+핵심: ${currentRes.upright ? c.au : c.ar}`;
   try{
     if (navigator.share) await navigator.share({ title:"오늘의 타로", text:msg });
     else { await navigator.clipboard.writeText(msg); alert("복사 완료! 원하는 곳에 붙여넣기 하세요."); }
   }catch(e){}
 });
 
-// 탭 이벤트
+// 탭
 tabGeneral.addEventListener("click", ()=>setTab("general"));
 tabLove.addEventListener("click", ()=>setTab("love"));
 tabWork.addEventListener("click", ()=>setTab("work"));
 tabMoney.addEventListener("click", ()=>setTab("money"));
 
-// 초기 표시
-window.addEventListener("DOMContentLoaded", ()=>{
-  dateText.textContent = fmtDateHuman();
-  const existing = loadToday();
-  if(existing){ renderResult(existing); flipCard(true); drawBtn.disabled = true; }
-});
+// 초기
+dateText.textContent = fmtDateHuman();
 </script>
 </body>
-</html>
-<body> ... </body>
 </html>
