@@ -2,428 +2,464 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>오늘의 타로 · 무제한 랜덤</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>에니어그램 성향 테스트 (확장판)</title>
 <style>
   :root{
-    --bg:#0f0f14;--card:#181820;--accent:#7c5cff;--text:#f5f5f7;--muted:#b9b8c6;--good:#58d68d;--bad:#ff7675;
+    --bg:#0f1115;
+    --panel:#151821;
+    --muted:#8b93a7;
+    --text:#e6e9f2;
+
+    /* ▼ 브랜드 커스터마이즈: 이 두 줄만 바꿔도 분위기 확 바뀜 */
+    --primary:#6c8cff; /* 대표색 (예: #ff7b54 로 교체 가능) */
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+
+    --accent:#4ad6a7;
+    --danger:#ff6b6b;
+    --radius:16px;
   }
   *{box-sizing:border-box}
   body{
-    
-    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Pretendard","Segoe UI",sans-serif;
-    background: radial-gradient(1200px 600px at 50% -10%, #222 0%, #111 40%, #0a0a0f 100%);
-    color:var(--text); display:flex; min-height:100dvh; align-items:center; justify-content:center; padding:24px;
+    margin:0; background:linear-gradient(180deg,#0d0f14 0%,#0f1115 100%);
+    color:var(--text); font-family:var(--font); -webkit-font-smoothing:antialiased;
   }
-  .app{width:100%; max-width:680px}
-  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
-  h1{font-size:1.25rem; margin:0; letter-spacing:.02em}
-  .date{color:var(--muted); font-size:.9rem}
-  .wrap{
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-    border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px 16px 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  .wrap{max-width:980px; margin:32px auto; padding:0 16px 80px}
+  header{
+    position:sticky; top:0; z-index:20;
+    background:rgba(15,17,21,.8); backdrop-filter: blur(8px);
+    border-bottom:1px solid #222632;
   }
-  .grid{display:grid; grid-template-columns:1fr; gap:14px}
-  @media (min-width:850px){ .grid{grid-template-columns: 300px 1fr} }
-  .cardbox{display:flex; justify-content:center; perspective:1000px;}
+  header .inner{max-width:980px; margin:0 auto; padding:14px 16px; display:flex; gap:12px; align-items:center}
+  .logo{
+    width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    color:#0b0d12; font-weight:800; letter-spacing:.5px;
+  }
+  h1{font-size:1.2rem; margin:0}
+  .sub{color:var(--muted); font-size:.9rem}
   .card{
-    width:min(80vw,280px); height:420px; border-radius:16px; position:relative; cursor:pointer;
-    transform-style:preserve-3d; transition:transform .8s cubic-bezier(.2,.7,.2,1);
+    background:var(--panel); border:1px solid #232838; border-radius:var(--radius);
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
   }
-  .card.flipped{transform:rotateY(180deg)}
-  .face{position:absolute; inset:0; backface-visibility:hidden; border-radius:16px; overflow:hidden;
-    display:flex; align-items:center; justify-content:center; box-shadow:0 16px 40px rgba(0,0,0,.45)}
-  .front{
-    background:
-      radial-gradient(400px 200px at 50% 0%, rgba(124,92,255,.25), transparent 60%),
-      linear-gradient(135deg, #1f1b2e, #141420);
-    border:1px solid rgba(124,92,255,.4);
+  .hero{margin-top:20px; padding:24px}
+  .grid{display:grid; gap:14px}
+  .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+  .btn{
+    appearance:none; border:1px solid #2a3042; background:#1a1f2e; color:var(--text);
+    padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer;
+    transition:transform .06s ease, background .2s ease, border-color .2s;
   }
-  .back{
-    transform:rotateY(180deg);
-    background:
-      radial-gradient(500px 220px at 50% -5%, rgba(124,92,255,.22), transparent 60%),
-      linear-gradient(160deg, #111318, #171924);
-    border:1px solid rgba(255,255,255,.08);
-    padding:16px;
+  .btn:hover{transform:translateY(-1px); border-color:#3a4160}
+  .btn.primary{background:var(--primary); border-color:transparent; color:#0b0d12}
+  .btn.ghost{background:transparent}
+  .btn.danger{background:#23181b; border-color:#40252c; color:#ff9aa2}
+  .badge{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px;
+    background:#10131b; border:1px solid #252a3a; color:var(--muted); font-size:.85rem;
   }
-  .sigil{
-    width:70%; aspect-ratio:1/1; border-radius:50%; border:2px dashed rgba(255,255,255,.14);
-    display:flex; align-items:center; justify-content:center; color:#fff; font-size:3rem; user-select:none;
-    background: radial-gradient(60% 60% at 50% 45%, rgba(255,255,255,.06), transparent);
+  .q{
+    padding:16px; border:1px solid #232838; border-radius:14px; background:#121622;
   }
-  .brand{position:absolute; inset:auto 14px 14px auto; font-size:.8rem; color:var(--muted);
-    background:rgba(0,0,0,.25); padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08)}
-  .name{font-weight:700; text-align:center; margin:6px 0 8px; letter-spacing:.02em}
-  .dir{font-size:.85rem; color:var(--muted); text-align:center; margin-bottom:8px}
-  .keywords{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:6px 0 10px}
-  .pill{font-size:.85rem; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08)}
-  .advice{font-size:1rem; line-height:1.55; background:rgba(124,92,255,.09);
-    border:1px solid rgba(124,92,255,.35); padding:12px 14px; border-radius:12px; text-align:center}
-  .advice.good{background:rgba(88,214,141,.08); border-color:rgba(88,214,141,.4)}
-  .advice.bad{background:rgba(255,118,117,.08); border-color:rgba(255,118,117,.45)}
-  .btns{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:8px}
-  button{
-    all:unset; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.14);
-    background:rgba(255,255,255,.06); cursor:pointer; font-weight:600; letter-spacing:.01em; text-align:center
+  .qhead{display:flex; gap:10px; align-items:center; margin-bottom:8px}
+  .qno{
+    width:28px; height:28px; border-radius:8px; background:#0f1422; border:1px solid #1f2740;
+    display:grid; place-items:center; color:#9fb0ff; font-size:.85rem; font-weight:700;
   }
-  button.primary{background:linear-gradient(180deg, #7c5cff, #5f45e6); border-color:#7c5cff}
-  button.ghost[aria-selected="true"]{outline:2px solid var(--accent)}
-  .panel{
-    background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px
+  .qtext{font-size:1rem}
+  .scale{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:10px}
+  .opt{position:relative}
+  .opt input{position:absolute; inset:0; opacity:0; cursor:pointer}
+  .chip{
+    display:grid; place-items:center; padding:10px 4px; border-radius:10px;
+    border:1px solid #2a3042; color:#c9d1ff; background:#14192a; font-size:.9rem;
+    transition:all .15s ease;
   }
-  .panel h3{margin:0 0 8px; font-size:1rem}
-  .list{display:grid; gap:8px}
-  .line{font-size:.98rem; line-height:1.55; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); padding:10px 12px; border-radius:10px}
-  footer{margin-top:12px; text-align:center; color:var(--muted); font-size:.85rem}
+  .opt input:checked + .chip{background:var(--primary); color:#0b0d12; border-color:transparent; font-weight:800}
+  .muted{color:var(--muted)}
+  .result{
+    padding:22px; display:grid; gap:14px
+  }
+  .bars{display:grid; gap:8px}
+  .bar{ display:grid; gap:6px; }
+  .bar .label{display:flex; justify-content:space-between; font-size:.9rem; color:#aeb6cc}
+  .bar .track{
+    height:10px; background:#0e1220; border:1px solid #222843; border-radius:999px; overflow:hidden;
+  }
+  .bar .fill{height:100%; width:0}
+  .pill{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px;
+    background:#0f1422; border:1px solid #1e2640; color:#b8c2e8; font-weight:700
+  }
+  details{background:#0f1422; border:1px solid #212840; border-radius:12px; padding:12px}
+  details summary{cursor:pointer; font-weight:700; margin:4px 0 8px}
+  .foot{color:#8992a8; font-size:.85rem; margin-top:6px}
+  .hide{display:none}
+  .notice{padding:12px; border:1px dashed #2b3557; border-radius:12px; background:#0c0f19; color:#9fb0ff}
+  @media (max-width:640px){
+    .scale{gap:6px}
+    .chip{padding:10px 0; font-size:.85rem}
+  }
 </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>오늘의 타로</h1>
-      <div class="date" id="dateText"></div>
-    </header>
+<header>
+  <div class="inner">
+    <div class="logo">E9</div>
+    <div>
+      <h1>에니어그램 성향 테스트</h1>
+      <div class="sub">1(개혁가) ~ 9(평화주의자) · 54문항 · 가중치/역채점 반영 · 결과/날개/그래프</div>
+    </div>
+  </div>
+</header>
 
-    <div class="wrap">
-      <div class="grid">
-        <!-- 카드 -->
-        <div>
-          <div class="cardbox">
-            <div id="card" class="card">
-              <div class="face front" title="카드를 탭해 뒤집기">
-                <div class="sigil">🔮</div>
-                <div class="brand">TAROT · RANDOM</div>
-              </div>
-              <div class="face back">
-                <div style="width:100%;">
-                  <div class="name" id="cardName">카드를 뽑아보세요</div>
-                  <div class="dir" id="cardDir">정/역방향</div>
-                  <div class="keywords" id="keywords"></div>
-                  <div class="advice" id="advice">여기에 메시지가 표시됩니다.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="btns" style="margin-top:10px">
-            <button id="drawBtn" class="primary">카드 뽑기</button>
-            <button id="flipBtn">카드 뒤집기</button>
-            <button id="shareBtn">공유</button>
-            <button id="resetBtn" title="화면 초기화">초기화</button>
-          </div>
-        </div>
-
-        <!-- 분야별 해석 -->
-        <div>
-          <div class="btns" role="tablist" aria-label="분야 선택">
-            <button class="ghost" id="tabGeneral" role="tab" aria-selected="true">전체</button>
-            <button class="ghost" id="tabLove" role="tab" aria-selected="false">사랑</button>
-            <button class="ghost" id="tabWork" role="tab" aria-selected="false">일</button>
-            <button class="ghost" id="tabMoney" role="tab" aria-selected="false">금전</button>
-          </div>
-          <div class="panel" id="panel">
-            <h3 id="panelTitle">오늘의 핵심</h3>
-            <div class="list">
-              <div class="line" id="line1">카드를 뽑으면 분야별 해석이 표시됩니다.</div>
-              <div class="line" id="line2"></div>
-              <div class="line" id="line3"></div>
-            </div>
-          </div>
-        </div>
+<div class="wrap">
+  <section class="card hero grid">
+    <div class="grid" style="gap:8px">
+      <div class="badge">📝 총 <strong id="qCount">0</strong>문항 · 진행 <span id="progressP" class="pill">0%</span></div>
+      <div class="notice">이 테스트는 자기 인식용 참고 자료입니다. 임상 진단이 아니며, 컨디션/상황에 따라 결과가 달라질 수 있어요.</div>
+      <div class="controls">
+        <button id="btnSubmit" class="btn primary">결과 보기</button>
+        <button id="btnSave" class="btn">임시 저장</button>
+        <button id="btnLoad" class="btn ghost">불러오기</button>
+        <button id="btnReset" class="btn danger">초기화</button>
+        <button id="btnShare" class="btn ghost">공유 링크</button>
       </div>
     </div>
+  </section>
 
-    <footer>무제한 랜덤 버전 · 버튼을 누를 때마다 새로운 카드가 나옵니다</footer>
-  </div>
+  <section id="formArea" class="card" style="margin-top:18px; padding:18px">
+    <div id="qList" class="grid"></div>
+  </section>
+
+  <section id="resultArea" class="card hide" style="margin-top:18px">
+    <div class="result">
+      <div class="pill" id="topTypeBadge">결과가 여기에 표시됩니다</div>
+      <div id="wingText" class="muted"></div>
+      <div id="desc" class="grid"></div>
+      <details>
+        <summary>전체 점수(정규화 %) 보기</summary>
+        <div class="bars" id="bars"></div>
+      </details>
+      <div class="foot">
+        팁: 상위 2유형 조합이 “날개(wing)” 경향을 힌트 줄 수 있어요. 성장/스트레스 이동선도 함께 고려해 보세요.
+      </div>
+    </div>
+  </section>
+
+</div>
 
 <script>
-/** -------- 타로 데이터(메이저 22장) -------- */
-const MAJOR = [
-  { n:"0. 바보 (The Fool) 🃏",
-    u:["새출발","즉흥","자유"], r:["무모","불안정","방황"],
-    au:"가벼운 호기심으로 시작해도 좋아요. 작은 첫걸음을!",
-    ar:"즉흥 결정을 잠시 미루고, 기반을 먼저 다지세요." },
-  { n:"I. 마법사 (The Magician) ✨",
-    u:["의지","창조","커뮤니케이션"], r:["속임수","산만","집중력저하"],
-    au:"말과 행동을 정렬하세요. 오늘은 실행력이 핵심!",
-    ar:"한 번에 하나—우선순위를 정하고 잡음을 줄이세요." },
-  { n:"II. 여사제 (The High Priestess) 🌙",
-    u:["직관","비밀","내면"], r:["혼란","억압된감정","피상"],
-    au:"조용히 관찰하고, 내면의 신호를 믿어보세요.",
-    ar:"겉핥기로 판단하지 말고, 충분히 들여다보세요." },
-  { n:"III. 여황제 (The Empress) 🌿",
-    u:["풍요","돌봄","창의"], r:["과잉","지나친의존","정체"],
-    au:"관계와 몸에 영양을! 넉넉함이 행운을 부릅니다.",
-    ar:"과한 배려는 번아웃을 부릅니다. 선을 긋기." },
-  { n:"IV. 황제 (The Emperor) 🛡️",
-    u:["질서","통제","권위"], r:["완고","경직","권위충돌"],
-    au:"규칙·일정·우선순위를 명확히 하세요.",
-    ar:"융통성을 잃지 마세요. 협의가 해결책입니다." },
-  { n:"V. 교황 (The Hierophant) 📖",
-    u:["전통","멘토","학습"], r:["형식주의","고집","폐쇄성"],
-    au:"매뉴얼/선배에게서 힌트를 얻을 때예요.",
-    ar:"관습이 답은 아닙니다. 목적을 먼저 생각하세요." },
-  { n:"VI. 연인 (The Lovers) ❤️",
-    u:["선택","유대","조화"], r:["우유부단","불협","유혹"],
-    au:"가치에 맞는 선택을—진심이 기준입니다.",
-    ar:"감정과 이익이 충돌하면, 경계부터 정하세요." },
-  { n:"VII. 전차 (The Chariot) 🏁",
-    u:["돌파","속도","승리"], r:["폭주","산만","통제불능"],
-    au:"집중·속도 유지! 오늘은 밀어붙이는 날.",
-    ar:"브레이크도 실력. 속도를 줄여 방향을 잡으세요." },
-  { n:"VIII. 힘 (Strength) 🦁",
-    u:["용기","인내","자기조절"], r:["불안","과민","의욕저하"],
-    au:"부드러운 끈기가 강합니다. 자신을 믿어주세요.",
-    ar:"억지로 버티지 말고, 회복 시간을 주세요." },
-  { n:"IX. 은둔자 (The Hermit) 🕯️",
-    u:["성찰","연구","집중"], r:["고립","지연","폐쇄"],
-    au:"혼자만의 몰입이 답을 줍니다.",
-    ar:"도움 요청도 용기입니다. 고립을 끊으세요." },
-  { n:"X. 운명의 수레바퀴 (Wheel of Fortune) 🎡",
-    u:["전환","행운","순환"], r:["변덕","통제불가","타이밍악"],
-    au:"오는 파도를 타세요. 타이밍이 곧 실력!",
-    ar:"지금은 큰 베팅보다 관망이 유리해요." },
-  { n:"XI. 정의 (Justice) ⚖️",
-    u:["공정","계약","균형"], r:["불균형","불이익","편향"],
-    au:"사실과 규정을 기준으로 판단하세요.",
-    ar:"감정 섞인 결정은 손해. 자료를 다시 보세요." },
-  { n:"XII. 매달린 사람 (The Hanged Man) 🪢",
-    u:["시각전환","희생","멈춤"], r:["지체","고집","비효율"],
-    au:"잠시 멈춤이 도약을 만듭니다. 각도를 바꿔보세요.",
-    ar:"애써 막 끌지 말고, 내려놓을 건 내려놓기." },
-  { n:"XIII. 죽음 (Death) 🦋",
-    u:["종결","정리","재생"], r:["집착","미루기","정체"],
-    au:"낡은 것을 끝내야 새 것이 옵니다.",
-    ar:"붙잡는 손을 펴면, 흐름이 돌아옵니다." },
-  { n:"XIV. 절제 (Temperance) 💧",
-    u:["조율","균형","치유"], r:["과유불급","기복","실수"],
-    au:"70%의 조화가 100점의 결과를 부릅니다.",
-    ar:"무리수 금지. 속도·양을 낮춰 미세조정!" },
-  { n:"XV. 악마 (The Devil) 🔗",
-    u:["집착","유혹","계약"], r:["해방","자각","절제"],
-    au:"달콤한 유혹엔 가격표가 있습니다. 조건을 보세요.",
-    ar:"연결고리를 인식했다면 반은 끊은 겁니다." },
-  { n:"XVI. 탑 (The Tower) ⚡",
-    u:["충격","붕괴","각성"], r:["피해감소","경고","복구"],
-    au:"예상 밖 변화. 그러나 진짜 문제를 드러냅니다.",
-    ar:"작게 무너질수록 회복이 빠릅니다. 대비하세요." },
-  { n:"XVII. 별 (The Star) 🌟",
-    u:["희망","영감","회복"], r:["의심","현실회피","지연"],
-    au:"작은 희망을 키우면 길이 열립니다.",
-    ar:"희망엔 실행이 필요합니다. 첫 행동을!" },
-  { n:"XVIII. 달 (The Moon) 🌘",
-    u:["감정","직감","꿈"], r:["오해","불안","루머"],
-    au:"감정을 적어보세요. 진짜 필요가 보입니다.",
-    ar:"확증 없는 소문은 보류. 팩트를 확인!" },
-  { n:"XIX. 태양 (The Sun) ☀️",
-    u:["성취","자신감","명료"], r:["지연","과신","소진"],
-    au:"밝게 밀고 가면 됩니다. 공개적으로 추진!",
-    ar:"과신을 줄이고, 체력 관리에 집중하세요." },
-  { n:"XX. 심판 (Judgement) 🎺",
-    u:["부활","평가","결정"], r:["후회","미완","연기"],
-    au:"과거의 자신을 호출해 결정을 마무리!",
-    ar:"판단 보류 OK. 자료를 더 모으세요." },
-  { n:"XXI. 세계 (The World) 🌍",
-    u:["완성","통합","여행"], r:["미완성","마무리지연","흩어짐"],
-    au:"끝까지 수습하면 다음 레벨이 열립니다.",
-    ar:"마무리 체크리스트로 누락을 막으세요." },
+/** =========================
+ *  데이터(문항) 정의 — 확장판 54문항
+ *  type: 1~9 (에니어그램 유형)
+ *  reverse: true면 역채점(6 - 값)
+ *  weight: 가중치(기본 1)
+ *  ========================= */
+const QUESTIONS = [
+  // 1 유형 · 개혁가
+  { text:"나는 일을 시작하기 전에 기준을 먼저 세운다.", type:1 },
+  { text:"완성도가 낮으면 제출하기가 어렵다.", type:1, weight:1.3 },
+  { text:"옳고 그름에 민감하지만 감정표현은 절제하는 편이다.", type:1 },
+  { text:"사소한 실수에도 쉽게 자신을 탓한다.", type:1, weight:1.2 },
+  { text:"상황에 따라 기준을 유연하게 바꾸는 편이다.", type:1, reverse:true },
+  { text:"피드백이 엄격해도 개선을 위해 수용한다.", type:1 },
+
+  // 2 유형 · 조력가
+  { text:"상대의 필요를 빨리 알아채고 먼저 돕는다.", type:2 },
+  { text:"도움을 거절하면 미안함이 오래간다.", type:2, weight:1.2 },
+  { text:"남을 도우면서 내 욕구를 종종 뒤로 미룬다.", type:2, weight:1.2 },
+  { text:"도움이 거절되면 상처를 쉽게 받는다.", type:2 },
+  { text:"관계에서 ‘NO’를 편안하게 말한다.", type:2, reverse:true },
+  { text:"칭찬과 감사표현이 동기부여에 크게 작용한다.", type:2 },
+
+  // 3 유형 · 성취가
+  { text:"목표 달성 과정에서 수치화된 지표를 선호한다.", type:3 },
+  { text:"비효율을 보면 곧바로 구조를 손보고 싶다.", type:3 },
+  { text:"성과와 평판이 나의 가치를 증명한다고 느낀다.", type:3, weight:1.3 },
+  { text:"결과보다 경험이 더 중요하다고 믿는다.", type:3, reverse:true },
+  { text:"주어진 시간 내 최대 성과를 내는 데 자신 있다.", type:3 },
+  { text:"실패를 인정하고 휴식할 줄 안다.", type:3, reverse:true },
+
+  // 4 유형 · 예술가
+  { text:"감정의 미묘한 결을 정교하게 구분한다.", type:4, weight:1.2 },
+  { text:"평범함보다는 나만의 고유함을 추구한다.", type:4 },
+  { text:"비교나 결핍감에 쉽게 흔들린다.", type:4, weight:1.2 },
+  { text:"감정을 표현하는 것이 내게 자연스럽다.", type:4 },
+  { text:"타인의 시선을 거의 의식하지 않는다.", type:4, reverse:true },
+  { text:"정서적 깊이를 가진 콘텐츠에 강하게 끌린다.", type:4 },
+
+  // 5 유형 · 탐구가
+  { text:"혼자 몰입하는 시간이 없으면 쉽게 소진된다.", type:5, weight:1.2 },
+  { text:"충분히 알기 전까지는 결정을 미루는 편이다.", type:5 },
+  { text:"정보와 개념을 구조화하는 것을 즐긴다.", type:5, weight:1.2 },
+  { text:"감정적 지지를 타인에게 자주 구한다.", type:5, reverse:true },
+  { text:"리소스 소모를 계산하며 에너지를 아낀다.", type:5 },
+  { text:"모르는 채로도 실행하며 배우는 편이다.", type:5, reverse:true },
+
+  // 6 유형 · 충실가
+  { text:"문제를 대비해 대안 시나리오를 마련한다.", type:6 },
+  { text:"권위를 신뢰하지만 맹신하지 않는다.", type:6 },
+  { text:"불확실성에 민감하고 걱정이 잦다.", type:6, weight:1.3 },
+  { text:"즉흥적 결정이 보통 잘 맞는다.", type:6, reverse:true },
+  { text:"팀에 대한 책임감이 강하고 약속을 지킨다.", type:6 },
+  { text:"위험을 감수하는 편이다.", type:6, reverse:true },
+
+  // 7 유형 · 낙천가
+  { text:"새로운 아이디어를 떠올리면 바로 시도해본다.", type:7 },
+  { text:"제약이나 반복이 많으면 흥미를 잃는다.", type:7 },
+  { text:"불편한 감정을 피하려 다른 일로 전환한다.", type:7, weight:1.2 },
+  { text:"루틴과 규칙을 성실히 지킨다.", type:7, reverse:true },
+  { text:"가능성을 탐색하는 과정 자체가 즐겁다.", type:7 },
+  { text:"하나에 오래 집중해 깊이 파고든다.", type:7, reverse:true },
+
+  // 8 유형 · 도전자
+  { text:"중요한 순간에 주도권을 쥐고 싶다.", type:8 },
+  { text:"부당함을 보면 즉시 맞선다.", type:8, weight:1.2 },
+  { text:"약한 모습을 보이는 게 어렵다.", type:8, weight:1.3 },
+  { text:"타인의 의견에 쉽게 휘둘린다.", type:8, reverse:true },
+  { text:"위험이 있어도 필요한 결정을 밀어붙인다.", type:8 },
+  { text:"부드럽게 부탁하고 의존하는 것이 편하다.", type:8, reverse:true },
+
+  // 9 유형 · 평화주의자
+  { text:"갈등을 줄이고 조화를 우선한다.", type:9 },
+  { text:"내 욕구보다 분위기 유지를 택할 때가 많다.", type:9 },
+  { text:"결정을 미루다 기회를 놓친 경험이 있다.", type:9, weight:1.2 },
+  { text:"분명한 선호를 적극적으로 드러낸다.", type:9, reverse:true },
+  { text:"타인의 관점을 쉽게 수용하고 중재한다.", type:9 },
+  { text:"중요한 자리에서 또렷하게 주장한다.", type:9, reverse:true },
 ];
 
-/** -------- 유틸 & 분야별 해석 -------- */
-const dateText = document.getElementById("dateText");
-function fmtDateHuman(){ return new Intl.DateTimeFormat("ko-KR",{dateStyle:"full"}).format(new Date()).replace(/\s*역\s*$/,""); }
-dateText.textContent = fmtDateHuman();
+const TYPE_META = {
+  1:{name:"1 유형 · 개혁가",  color:"#9fb0ff", brief:"원칙·개선·책임"},
+  2:{name:"2 유형 · 조력가",  color:"#ffb6c1", brief:"배려·관계·헌신"},
+  3:{name:"3 유형 · 성취가",  color:"#ffd27f", brief:"목표·성과·효율"},
+  4:{name:"4 유형 · 예술가",  color:"#caa8ff", brief:"정체성·감수성·독창"},
+  5:{name:"5 유형 · 탐구가",  color:"#8bd3ff", brief:"분석·지식·거리"},
+  6:{name:"6 유형 · 충실가",  color:"#7fe3c2", brief:"신뢰·대비·협력"},
+  7:{name:"7 유형 · 낙천가",  color:"#ffe38b", brief:"즐거움·기회·낙관"},
+  8:{name:"8 유형 · 도전자",  color:"#ff9aa2", brief:"강단·보호·직설"},
+  9:{name:"9 유형 · 평화주의자",color:"#c7e59f", brief:"조화·수용·안정"},
+};
 
-const pick = (arr)=> arr[Math.floor(Math.random()*arr.length)];
-function domainAdvice(card, upright, domain){
-  const T = {
-    love:{
-      u:[
-        "감정의 {tone} 흐름. 솔직한 대화가 매력을 높입니다.",
-        "새 인연/관계 회복 운세 ↑. {tip}",
-        "관계의 리듬을 맞추면 거리감이 줄어듭니다."
-      ],
-      r:[
-        "감정 기복 주의. {trap}에 휘둘리지 않도록 경계하세요.",
-        "서두르면 오해가 커집니다. {tip}",
-        "관계의 경계 재설정이 필요합니다."
-      ],
-      tips:["작은 연락 먼저","만남보다 대화의 질","감정 기록하기","기대치 조율하기"],
-      traps:["과도한 기대","확신 없는 밀당","비교 습관","답정너 대화"]
-    },
-    work:{
-      u:[
-        "업무의 {tone} 흐름. 핵심 1가지에 집중하면 성과가 납니다.",
-        "도움/멘토 운세가 있어요. {tip}",
-        "타이밍이 좋습니다. 실행에 옮기세요."
-      ],
-      r:[
-        "우선순위 혼선 주의. {trap}를 줄이세요.",
-        "속도를 낮추고 정합성을 점검할 때입니다.",
-        "관성대로 가지 말고 프로세스를 재정비하세요."
-      ],
-      tips:["레퍼런스 확보","메모로 흐름 잡기","오늘 1태스크 완주","데드라인 재확인"],
-      traps:["회의 과다","컨텍스트 스위칭","미루기","완벽주의 루프"]
-    },
-    money:{
-      u:[
-        "현금흐름이 {tone}. {tip}에 포커스 하세요.",
-        "작은 절약/수익화 아이디어가 효율을 만듭니다.",
-        "계획적 지출이 수익률을 지킵니다."
-      ],
-      r:[
-        "충동소비/과신 주의. {trap} 피하기.",
-        "큰 베팅은 보류. 현금쿠션을 먼저.",
-        "조건 확인 없이 서명 금지—조항을 재검토!"
-      ],
-      tips:["지출 카테고리 제한","구독 점검","가격 비교","예비비 우선"],
-      traps:["무이자에 방심","할인 유혹","정보 비대칭","수익률 과대평가"]
-    }
-  };
-  const tone = upright ? pick(["맑고 경쾌한","안정적인","확장적인"])
-                       : pick(["울퉁불퉁한","흐릿한","변덕스러운"]);
-  const kws = upright ? card.u : card.r;
-  const tpl = upright ? pick(T[domain].u) : pick(T[domain].r);
-  const tip = pick(T[domain].tips);
-  const trap = pick(T[domain].traps);
-  return tpl.replace("{tone}", kws[0]||"흐름").replace("{tip}", tip).replace("{trap}", trap);
-}
+const TYPE_DESC = {
+  1: "옳고 그름과 개선에 민감하며 책임감이 강합니다. 시스템과 기준을 세워 품질을 끌어올리는 능력이 탁월하나, 과도한 자기비판과 경직성이 스트레스를 부를 수 있습니다. 유연한 기준 설정과 '충분히 좋은 것'을 허락하는 연습이 성장에 도움 됩니다.",
+  2: "타인의 욕구를 잘 읽고 기꺼이 돕는 따뜻한 사람입니다. 관계를 촉진하고 팀 분위기를 살리지만, 자기 욕구를 미루다 지치는 패턴이 나타나기도 합니다. 건강한 경계와 솔직한 감정표현을 통해 ‘주는 것’과 ‘받는 것’의 균형을 맞추면 강점이 빛납니다.",
+  3: "목표지향·효율 지향으로 성과 창출에 능숙합니다. 변화에 빠르게 적응하고 결과로 증명하지만, 이미지·성과에 과몰입하면 진정성이 흔들릴 수 있습니다. 과정의 의미를 재발견하고 휴식/감정 접속을 늘리면 지속 가능한 성취가 가능합니다.",
+  4: "정체성과 감수성이 풍부하며 깊이 있는 창의성을 지닙니다. 차별화 욕구가 강해 독창성을 만들어내지만, 비교·결핍감에 흔들릴 수 있습니다. 일상 속 안정 루틴과 자기연민을 기르면 감정의 깊이가 생산성과 연결됩니다.",
+  5: "분석과 통찰에 강하고 집중력 있는 탐구가 가능합니다. 에너지 관리를 중시해 자원을 아끼지만, 과도한 거리두기는 고립을 부를 수 있습니다. ‘충분히 알기 전 실행’의 작은 실험과 관계적 개방이 역량을 사회적 가치로 전환시킵니다.",
+  6: "신뢰·안전을 중시하며 대비책을 세우는 팀 플레이어입니다. 위험 감지와 리스크 관리에 능하나, 불확실성 과각성은 불안으로 이어질 수 있습니다. 자기확신 훈련과 ‘증거 기반 낙관’이 균형을 돕고, 신뢰하는 동료와의 협력이 힘이 됩니다.",
+  7: "가능성을 탐색하고 활력을 전파하는 아이디어 메이커입니다. 즐거움과 낙관으로 팀을 띄우지만, 불편한 감정을 회피하면 얕은 전환이 반복될 수 있습니다. 느리게 머무는 연습과 우선순위 집중을 통해 깊이와 지속성을 키울 수 있습니다.",
+  8: "강단 있고 보호적인 리더 성향입니다. 불의에 맞서며 결단이 빠르지만, 취약성 회피는 관계적 긴장을 키울 수 있습니다. 안전한 공간에서 약함을 솔직히 나누고 위임을 늘리면 신뢰가 두터워지고 영향력은 더욱 커집니다.",
+  9: "온화하고 포용적이며 중재에 능합니다. 다양한 관점을 통합해 안정감을 주지만, 자기주장 회피로 방향성을 잃을 수 있습니다. 작은 선택부터 명확히 말하기와 에너지 활성화를 연습하면 조화 속 주체성이 살아납니다.",
+};
 
-/** -------- 엘리먼트 -------- */
-const cardEl   = document.getElementById("card");
-const nameEl   = document.getElementById("cardName");
-const dirEl    = document.getElementById("cardDir");
-const kwEl     = document.getElementById("keywords");
-const advEl    = document.getElementById("advice");
-const drawBtn  = document.getElementById("drawBtn");
-const flipBtn  = document.getElementById("flipBtn");
-const shareBtn = document.getElementById("shareBtn");
-const resetBtn = document.getElementById("resetBtn");
+/** ====== 렌더링 ====== */
+const qList = document.getElementById('qList');
+const qCount = document.getElementById('qCount');
+const progressP = document.getElementById('progressP');
+const resultArea = document.getElementById('resultArea');
+const bars = document.getElementById('bars');
+const topTypeBadge = document.getElementById('topTypeBadge');
+const wingText = document.getElementById('wingText');
+const descBox = document.getElementById('desc');
 
-const tabGeneral = document.getElementById("tabGeneral");
-const tabLove = document.getElementById("tabLove");
-const tabWork = document.getElementById("tabWork");
-const tabMoney = document.getElementById("tabMoney");
-const panelTitle = document.getElementById("panelTitle");
-const line1 = document.getElementById("line1");
-const line2 = document.getElementById("line2");
-const line3 = document.getElementById("line3");
-
-/** -------- 상태 -------- */
-let currentRes = null;
-let currentTab = "general";
-
-/** -------- 렌더링 -------- */
-function renderResult(res){
-  if(!res){
-    nameEl.textContent = "카드를 뽑아보세요";
-    dirEl.textContent = "정/역방향";
-    kwEl.innerHTML = "";
-    advEl.textContent = "여기에 메시지가 표시됩니다.";
-    advEl.className = "advice";
-    renderDomainPanel(null);
-    return;
-  }
-  const card = MAJOR[res.idx];
-  const isUpright = res.upright;
-  nameEl.textContent = card.n;
-  dirEl.textContent = isUpright ? "정방향" : "역방향";
-  kwEl.innerHTML = "";
-  (isUpright?card.u:card.r).forEach(k=>{
-    const span=document.createElement("span"); span.className="pill"; span.textContent=k; kwEl.appendChild(span);
+function renderQuestions(){
+  qList.innerHTML='';
+  QUESTIONS.forEach((q,idx)=>{
+    const id = `q_${idx}`;
+    const el = document.createElement('div');
+    el.className='q';
+    el.innerHTML = `
+      <div class="qhead">
+        <div class="qno">${idx+1}</div>
+        <div class="qtext">${escapeHtml(q.text)}</div>
+      </div>
+      <div class="scale" role="radiogroup" aria-labelledby="${id}_label">
+        ${[1,2,3,4,5].map(v=>{
+          const name = `r_${idx}`;
+          const lab = v===1?'전혀 아니다':v===3?'보통':v===5?'매우 그렇다':'';
+          return `
+          <label class="opt" title="${lab}">
+            <input type="radio" name="${name}" value="${v}" />
+            <div class="chip">${v}</div>
+          </label>`;
+        }).join('')}
+      </div>
+      <div class="muted" style="margin-top:8px;font-size:.85rem;">
+        1 전혀 아니다 · 2 아니다 · 3 보통 · 4 그렇다 · 5 매우 그렇다
+      </div>
+    `;
+    qList.appendChild(el);
   });
-  advEl.textContent = isUpright ? card.au : card.ar;
-  advEl.className = "advice " + (isUpright ? "good" : (res.idx===15||res.idx===16 ? "bad" : ""));
-  renderDomainPanel(res);
+  qCount.textContent = QUESTIONS.length;
 }
-function renderDomainPanel(res){
-  if(!res){
-    panelTitle.textContent = "오늘의 핵심";
-    line1.textContent = "카드를 뽑으면 분야별 해석이 표시됩니다.";
-    line2.textContent = ""; line3.textContent = "";
-    return;
+renderQuestions();
+
+/** ====== 유틸 ====== */
+function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m])); }
+function getResponses(){
+  const values = [];
+  QUESTIONS.forEach((_,i)=>{
+    const checked = document.querySelector(`input[name="r_${i}"]:checked`);
+    values[i] = checked ? Number(checked.value) : null;
+  });
+  return values;
+}
+function calcProgress(vals){
+  const answered = vals.filter(v=>v!=null).length;
+  return Math.round(answered/QUESTIONS.length*100);
+}
+function normalizeScores(raw){
+  // 유형별 최대점 자동 계산(문항수×5×가중치 합)
+  const maxPerType = {}; for (const t of Object.keys(TYPE_META)) maxPerType[t]=0;
+  QUESTIONS.forEach((q)=>{
+    const w = q.weight ?? 1;
+    maxPerType[q.type] += 5*w;
+  });
+  const norm = {};
+  for (const t of Object.keys(TYPE_META)){
+    norm[t] = Math.round((raw[t] / (maxPerType[t]||1)) * 100);
   }
-  const card = MAJOR[res.idx];
-  if(currentTab==="general"){
-    panelTitle.textContent = "핵심 요약";
-    line1.textContent = (res.upright?card.au:card.ar);
-    line2.textContent = `키워드: ${(res.upright?card.u:card.r).join(", ")}`;
-    line3.textContent = `카드: ${card.n} · ${res.upright?"정방향":"역방향"}`;
-  }else if(currentTab==="love"){
-    panelTitle.textContent = "사랑 운세";
-    line1.textContent = domainAdvice(card, res.upright, "love");
-    line2.textContent = "☑︎ 대화의 질 > 횟수 · 경계/기대치 조율";
-    line3.textContent = "팁: 작은 친절/메시지로 리드해보세요.";
-  }else if(currentTab==="work"){
-    panelTitle.textContent = "일(커리어) 운세";
-    line1.textContent = domainAdvice(card, res.upright, "work");
-    line2.textContent = "☑︎ 오늘 한 가지 완주 · 데이터로 설득";
-    line3.textContent = "팁: 마감·의사결정 포인트를 먼저 적기";
-  }else{
-    panelTitle.textContent = "금전 운세";
-    line1.textContent = domainAdvice(card, res.upright, "money");
-    line2.textContent = "☑︎ 충동구매 방지 · 구독/고정비 점검";
-    line3.textContent = "팁: 오늘은 비교·보류·예비비 강화";
+  return norm;
+}
+function compute(){
+  const vals = getResponses();
+  const progress = calcProgress(vals);
+  progressP.textContent = progress + "%";
+  if(vals.some(v=>v===null)){
+    alert("모든 문항에 응답해 주세요. (진행률 "+progress+"%)");
+    return null;
+  }
+  const scores = {}; for (const t of Object.keys(TYPE_META)) scores[t]=0;
+
+  QUESTIONS.forEach((q,i)=>{
+    let v = vals[i];
+    if (q.reverse) v = 6 - v; // 역채점
+    const w = q.weight ?? 1;
+    scores[q.type] += v * w;
+  });
+
+  const norm = normalizeScores(scores);
+  return {raw:scores, norm};
+}
+function findTopTwo(norm){
+  const pairs = Object.entries(norm).map(([t,v])=>({t:Number(t), v}));
+  pairs.sort((a,b)=>b.v-a.v);
+  return [pairs[0], pairs[1], pairs];
+}
+
+/** ====== 결과 렌더 ====== */
+function renderBars(norm){
+  bars.innerHTML='';
+  for (let t=1;t<=9;t++){
+    const meta = TYPE_META[t];
+    const v = norm[t];
+    const row = document.createElement('div');
+    row.className='bar';
+    row.innerHTML = `
+      <div class="label"><span>${meta.name}</span><span>${v}%</span></div>
+      <div class="track"><div class="fill" style="width:${v}%; background:${meta.color}"></div></div>
+    `;
+    bars.appendChild(row);
   }
 }
-
-/** -------- 동작 -------- */
-function flipCard(toBack=true){
-  const flipped = cardEl.classList.contains("flipped");
-  if(toBack && !flipped) cardEl.classList.add("flipped");
-  if(!toBack && flipped) cardEl.classList.remove("flipped");
-}
-function drawRandom(){
-  const idx = Math.floor(Math.random()*MAJOR.length);
-  const upright = Math.random() < 0.5;
-  return { idx, upright, ts: Date.now() };
-}
-function applyDraw(){
-  const res = drawRandom();
-  currentRes = res;
-  renderResult(res);
-  setTimeout(()=>flipCard(true), 250);
-}
-function setTab(tab){
-  currentTab = tab;
-  [tabGeneral,tabLove,tabWork,tabMoney].forEach(b=>b.setAttribute("aria-selected","false"));
-  ({"general":tabGeneral,"love":tabLove,"work":tabWork,"money":tabMoney}[tab]).setAttribute("aria-selected","true");
-  renderDomainPanel(currentRes);
+function renderSummary(top, second){
+  const m1 = TYPE_META[top.t];
+  const m2 = TYPE_META[second.t];
+  topTypeBadge.style.background = "#0f1422";
+  topTypeBadge.style.border = "1px solid #1e2640";
+  topTypeBadge.style.color = "#cfe1ff";
+  topTypeBadge.innerHTML = `🏁 상위 유형: <strong style="color:${m1.color}">${m1.name}</strong> <span class="muted">(${top.v}%)</span>
+    <span style="margin-left:8px" class="pill">키워드: ${m1.brief}</span>`;
+  wingText.innerHTML = `🪶 날개(wing) 후보: <b style="color:${m2.color}">${m2.name}</b> (${m2.brief})`;
+  descBox.innerHTML = `
+    <div class="grid" style="gap:8px">
+      <div><b>${m1.name}</b> — ${TYPE_DESC[top.t]}</div>
+      <div><b>${m2.name}</b> — ${TYPE_DESC[second.t]}</div>
+    </div>`;
 }
 
-/** -------- 이벤트 -------- */
-drawBtn.addEventListener("click", applyDraw);
-flipBtn.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
-cardEl.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
-resetBtn.addEventListener("click", ()=>{
-  currentRes = null;
-  renderResult(null);
-  flipCard(false);
+/** ====== 저장/불러오기/공유 ====== */
+const STORAGE_KEY = "enneagram_responses_v2_54q";
+function save(){
+  const vals = getResponses();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(vals));
+  alert("응답을 저장했어요. 같은 브라우저에서 이어서 할 수 있어요.");
+}
+function loadSaved(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return alert("저장된 응답이 없습니다.");
+  const vals = JSON.parse(raw);
+  vals.forEach((v,i)=>{
+    if(v==null) return;
+    const sel = document.querySelector(`input[name="r_${i}"][value="${v}"]`);
+    if (sel) sel.checked = true;
+  });
+  progressP.textContent = calcProgress(vals)+"%";
+  alert("불러왔어요!");
+}
+function resetAll(){
+  localStorage.removeItem(STORAGE_KEY);
+  document.querySelectorAll('input[type="radio"]').forEach(r=>r.checked=false);
+  progressP.textContent = "0%";
+  resultArea.classList.add('hide');
+  window.history.replaceState({}, "", window.location.pathname);
+}
+function shareLink(norm){
+  const qs = new URLSearchParams();
+  for (let t=1;t<=9;t++) qs.set("t"+t, norm[t]);
+  const url = `${location.origin}${location.pathname}?${qs.toString()}`;
+  navigator.clipboard.writeText(url).then(()=>{
+    alert("공유 링크를 복사했어요:\n" + url);
+  }).catch(()=>{
+    prompt("복사에 실패했어요. 아래 링크를 수동 복사하세요:", url);
+  });
+}
+function loadFromQuery(){
+  const u = new URL(location.href);
+  const fromQS = {};
+  let has=false;
+  for (let t=1;t<=9;t++){
+    const v = Number(u.searchParams.get("t"+t));
+    if(!isNaN(v) && v>=0 && v<=100){ fromQS[t]=v; has=true; }
+  }
+  if(has){
+    resultArea.classList.remove('hide');
+    const [top, second] = findTopTwo(fromQS);
+    renderSummary(top, second);
+    renderBars(fromQS);
+    window.scrollTo({top: document.getElementById('resultArea').offsetTop - 60, behavior:'smooth'});
+  }
+}
+loadFromQuery();
+
+/** ====== 이벤트 바인딩 ====== */
+document.getElementById('btnSubmit').addEventListener('click', ()=>{
+  const out = compute();
+  if(!out) return;
+  const [top, second] = findTopTwo(out.norm);
+  resultArea.classList.remove('hide');
+  renderSummary(top, second);
+  renderBars(out.norm);
+  window.scrollTo({top: document.getElementById('resultArea').offsetTop - 60, behavior:'smooth'});
 });
-shareBtn.addEventListener("click", async ()=>{
-  if(!currentRes){ alert("먼저 카드를 뽑아주세요!"); return; }
-  const c = MAJOR[currentRes.idx];
-  const dir = currentRes.upright ? "정방향" : "역방향";
-  const kws = (currentRes.upright ? c.u : c.r).join(", ");
-  const msg = `🔮 오늘의 타로 (${fmtDateHuman()})
-카드: ${c.n} · ${dir}
-키워드: ${kws}
-핵심: ${currentRes.upright ? c.au : c.ar}`;
-  try{
-    if (navigator.share) await navigator.share({ title:"오늘의 타로", text:msg });
-    else { await navigator.clipboard.writeText(msg); alert("복사 완료! 원하는 곳에 붙여넣기 하세요."); }
-  }catch(e){}
+document.getElementById('btnSave').addEventListener('click', save);
+document.getElementById('btnLoad').addEventListener('click', loadSaved);
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(confirm("응답과 결과를 모두 지울까요?")) resetAll();
 });
-
-// 탭
-tabGeneral.addEventListener("click", ()=>setTab("general"));
-tabLove.addEventListener("click", ()=>setTab("love"));
-tabWork.addEventListener("click", ()=>setTab("work"));
-tabMoney.addEventListener("click", ()=>setTab("money"));
-
-// 초기
-dateText.textContent = fmtDateHuman();
+document.getElementById('btnShare').addEventListener('click', ()=>{
+  const out = compute();
+  if(!out) return;
+  shareLink(out.norm);
+});
+// 진행률 실시간 갱신 + 자동저장
+qList.addEventListener('change', ()=>{
+  const vals = getResponses();
+  progressP.textContent = calcProgress(vals)+"%";
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(vals));
+});
 </script>
 </body>
 </html>
