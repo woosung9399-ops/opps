@@ -4,6 +4,479 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>오늘의 타로 · 분야별 해석</title>
-<!-- (중략: 실제 HTML 전체 코드를 여기에 넣으면 됨) -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>오늘의 타로 · 분야별 해석</title>
+<style>
+  :root{
+    --bg:#0f0f14;--card:#181820;--accent:#7c5cff;--text:#f5f5f7;--muted:#b9b8c6;--good:#58d68d;--bad:#ff7675;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Pretendard","Segoe UI",sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #222 0%, #111 40%, #0a0a0f 100%);
+    color:var(--text); display:flex; min-height:100dvh; align-items:center; justify-content:center; padding:24px;
+  }
+  .app{width:100%; max-width:680px}
+  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+  h1{font-size:1.25rem; margin:0; letter-spacing:.02em}
+  .date{color:var(--muted); font-size:.9rem}
+  .wrap{
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px 16px 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .grid{display:grid; grid-template-columns:1fr; gap:14px}
+  @media (min-width:850px){ .grid{grid-template-columns: 300px 1fr} }
+  .cardbox{display:flex; justify-content:center; perspective:1000px;}
+  .card{
+    width:min(80vw,280px); height:420px; border-radius:16px; position:relative; cursor:pointer;
+    transform-style:preserve-3d; transition:transform .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .card.flipped{transform:rotateY(180deg)}
+  .face{position:absolute; inset:0; backface-visibility:hidden; border-radius:16px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 16px 40px rgba(0,0,0,.45)}
+  .front{
+    background:
+      radial-gradient(400px 200px at 50% 0%, rgba(124,92,255,.25), transparent 60%),
+      linear-gradient(135deg, #1f1b2e, #141420);
+    border:1px solid rgba(124,92,255,.4);
+  }
+  .back{
+    transform:rotateY(180deg);
+    background:
+      radial-gradient(500px 220px at 50% -5%, rgba(124,92,255,.22), transparent 60%),
+      linear-gradient(160deg, #111318, #171924);
+    border:1px solid rgba(255,255,255,.08);
+    padding:16px;
+  }
+  .sigil{
+    width:70%; aspect-ratio:1/1; border-radius:50%; border:2px dashed rgba(255,255,255,.14);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:3rem; user-select:none;
+    background: radial-gradient(60% 60% at 50% 45%, rgba(255,255,255,.06), transparent);
+  }
+  .brand{position:absolute; inset:auto 14px 14px auto; font-size:.8rem; color:var(--muted);
+    background:rgba(0,0,0,.25); padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08)}
+  .name{font-weight:700; text-align:center; margin:6px 0 8px; letter-spacing:.02em}
+  .dir{font-size:.85rem; color:var(--muted); text-align:center; margin-bottom:8px}
+  .keywords{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:6px 0 10px}
+  .pill{font-size:.85rem; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08)}
+  .advice{font-size:1rem; line-height:1.55; background:rgba(124,92,255,.09);
+    border:1px solid rgba(124,92,255,.35); padding:12px 14px; border-radius:12px; text-align:center}
+  .advice.good{background:rgba(88,214,141,.08); border-color:rgba(88,214,141,.4)}
+  .advice.bad{background:rgba(255,118,117,.08); border-color:rgba(255,118,117,.45)}
+  .btns{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:8px}
+  button{
+    all:unset; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.06); cursor:pointer; font-weight:600; letter-spacing:.01em; text-align:center
+  }
+  button.primary{background:linear-gradient(180deg, #7c5cff, #5f45e6); border-color:#7c5cff}
+  button.ghost[aria-selected="true"]{outline:2px solid var(--accent)}
+  button:disabled{opacity:.6; cursor:not-allowed}
+  .panel{
+    background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px
+  }
+  .panel h3{margin:0 0 8px; font-size:1rem}
+  .list{display:grid; gap:8px}
+  .line{font-size:.98rem; line-height:1.55; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); padding:10px 12px; border-radius:10px}
+  footer{margin-top:12px; text-align:center; color:var(--muted); font-size:.85rem}
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>오늘의 타로</h1>
+      <div class="date" id="dateText"></div>
+    </header>
+
+    <div class="wrap">
+      <div class="grid">
+        <!-- 카드 -->
+        <div>
+          <div class="cardbox">
+            <div id="card" class="card">
+              <div class="face front" title="카드를 탭해 뒤집기">
+                <div class="sigil">🔮</div>
+                <div class="brand">TAROT · DAILY</div>
+              </div>
+              <div class="face back">
+                <div style="width:100%;">
+                  <div class="name" id="cardName">카드를 뽑아보세요</div>
+                  <div class="dir" id="cardDir">정/역방향</div>
+                  <div class="keywords" id="keywords"></div>
+                  <div class="advice" id="advice">오늘의 메시지가 여기에 표시됩니다.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="btns" style="margin-top:10px">
+            <button id="drawBtn" class="primary">오늘의 카드 뽑기</button>
+            <button id="flipBtn">카드 뒤집기</button>
+            <button id="shareBtn">공유</button>
+            <button id="resetBtn" title="현재 결과를 지우고 다시 시도(보통 자정 이후 자동 초기화)">초기화</button>
+          </div>
+        </div>
+
+        <!-- 분야별 해석 -->
+        <div>
+          <div class="btns" role="tablist" aria-label="분야 선택">
+            <button class="ghost" id="tabGeneral" role="tab" aria-selected="true">전체</button>
+            <button class="ghost" id="tabLove" role="tab" aria-selected="false">사랑</button>
+            <button class="ghost" id="tabWork" role="tab" aria-selected="false">일</button>
+            <button class="ghost" id="tabMoney" role="tab" aria-selected="false">금전</button>
+          </div>
+          <div class="panel" id="panel">
+            <h3 id="panelTitle">오늘의 핵심</h3>
+            <div class="list">
+              <div class="line" id="line1">카드를 뽑으면 분야별 해석이 표시됩니다.</div>
+              <div class="line" id="line2"></div>
+              <div class="line" id="line3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>정/역방향은 뽑을 때 자동 결정됩니다 · 하루 1회(오늘 날짜 기준) 고정</footer>
+  </div>
+
+<script>
+/** -------- 타로 데이터(메이저 22장) + 기본 메시지 -------- */
+const MAJOR = [
+  { n:"0. 바보 (The Fool) 🃏",
+    u:["새출발","즉흥","자유"], r:["무모","불안정","방황"],
+    au:"가벼운 호기심으로 시작해도 좋아요. 작은 첫걸음을!",
+    ar:"즉흥 결정을 잠시 미루고, 기반을 먼저 다지세요." },
+  { n:"I. 마법사 (The Magician) ✨",
+    u:["의지","창조","커뮤니케이션"], r:["속임수","산만","집중력저하"],
+    au:"말과 행동을 정렬하세요. 오늘은 실행력이 핵심!",
+    ar:"한 번에 하나—우선순위를 정하고 잡음을 줄이세요." },
+  { n:"II. 여사제 (The High Priestess) 🌙",
+    u:["직관","비밀","내면"], r:["혼란","억압된감정","피상"],
+    au:"조용히 관찰하고, 내면의 신호를 믿어보세요.",
+    ar:"겉핥기로 판단하지 말고, 충분히 들여다보세요." },
+  { n:"III. 여황제 (The Empress) 🌿",
+    u:["풍요","돌봄","창의"], r:["과잉","지나친의존","정체"],
+    au:"관계와 몸에 영양을! 넉넉함이 행운을 부릅니다.",
+    ar:"과한 배려는 번아웃을 부릅니다. 선을 긋기." },
+  { n:"IV. 황제 (The Emperor) 🛡️",
+    u:["질서","통제","권위"], r:["완고","경직","권위충돌"],
+    au:"규칙·일정·우선순위를 명확히 하세요.",
+    ar:"융통성을 잃지 마세요. 협의가 해결책입니다." },
+  { n:"V. 교황 (The Hierophant) 📖",
+    u:["전통","멘토","학습"], r:["형식주의","고집","폐쇄성"],
+    au:"매뉴얼/선배에게서 힌트를 얻을 때예요.",
+    ar:"관습이 답은 아닙니다. 목적을 먼저 생각하세요." },
+  { n:"VI. 연인 (The Lovers) ❤️",
+    u:["선택","유대","조화"], r:["우유부단","불협","유혹"],
+    au:"가치에 맞는 선택을—진심이 기준입니다.",
+    ar:"감정과 이익이 충돌하면, 경계부터 정하세요." },
+  { n:"VII. 전차 (The Chariot) 🏁",
+    u:["돌파","속도","승리"], r:["폭주","산만","통제불능"],
+    au:"집중·속도 유지! 오늘은 밀어붙이는 날.",
+    ar:"브레이크도 실력. 속도를 줄여 방향을 잡으세요." },
+  { n:"VIII. 힘 (Strength) 🦁",
+    u:["용기","인내","자기조절"], r:["불안","과민","의욕저하"],
+    au:"부드러운 끈기가 강합니다. 자신을 믿어주세요.",
+    ar:"억지로 버티지 말고, 회복 시간을 주세요." },
+  { n:"IX. 은둔자 (The Hermit) 🕯️",
+    u:["성찰","연구","집중"], r:["고립","지연","폐쇄"],
+    au:"혼자만의 몰입이 답을 줍니다.",
+    ar:"도움 요청도 용기입니다. 고립을 끊으세요." },
+  { n:"X. 운명의 수레바퀴 (Wheel of Fortune) 🎡",
+    u:["전환","행운","순환"], r:["변덕","통제불가","타이밍악"],
+    au:"오는 파도를 타세요. 타이밍이 곧 실력!",
+    ar:"지금은 큰 베팅보다 관망이 유리해요." },
+  { n:"XI. 정의 (Justice) ⚖️",
+    u:["공정","계약","균형"], r:["불균형","불이익","편향"],
+    au:"사실과 규정을 기준으로 판단하세요.",
+    ar:"감정 섞인 결정은 손해. 자료를 다시 보세요." },
+  { n:"XII. 매달린 사람 (The Hanged Man) 🪢",
+    u:["시각전환","희생","멈춤"], r:["지체","고집","비효율"],
+    au:"잠시 멈춤이 도약을 만듭니다. 각도를 바꿔보세요.",
+    ar:"애써 막 끌지 말고, 내려놓을 건 내려놓기." },
+  { n:"XIII. 죽음 (Death) 🦋",
+    u:["종결","정리","재생"], r:["집착","미루기","정체"],
+    au:"낡은 것을 끝내야 새 것이 옵니다.",
+    ar:"붙잡는 손을 펴면, 흐름이 돌아옵니다." },
+  { n:"XIV. 절제 (Temperance) 💧",
+    u:["조율","균형","치유"], r:["과유불급","기복","실수"],
+    au:"70%의 조화가 100점의 결과를 부릅니다.",
+    ar:"무리수 금지. 속도·양을 낮춰 미세조정!" },
+  { n:"XV. 악마 (The Devil) 🔗",
+    u:["집착","유혹","계약"], r:["해방","자각","절제"],
+    au:"달콤한 유혹엔 가격표가 있습니다. 조건을 보세요.",
+    ar:"연결고리를 인식했다면 반은 끊은 겁니다." },
+  { n:"XVI. 탑 (The Tower) ⚡",
+    u:["충격","붕괴","각성"], r:["피해감소","경고","복구"],
+    au:"예상 밖 변화. 그러나 진짜 문제를 드러냅니다.",
+    ar:"작게 무너질수록 회복이 빠릅니다. 대비하세요." },
+  { n:"XVII. 별 (The Star) 🌟",
+    u:["희망","영감","회복"], r:["의심","현실회피","지연"],
+    au:"작은 희망을 키우면 길이 열립니다.",
+    ar:"희망엔 실행이 필요합니다. 첫 행동을!" },
+  { n:"XVIII. 달 (The Moon) 🌘",
+    u:["감정","직감","꿈"], r:["오해","불안","루머"],
+    au:"감정을 적어보세요. 진짜 필요가 보입니다.",
+    ar:"확증 없는 소문은 보류. 팩트를 확인!" },
+  { n:"XIX. 태양 (The Sun) ☀️",
+    u:["성취","자신감","명료"], r:["지연","과신","소진"],
+    au:"밝게 밀고 가면 됩니다. 공개적으로 추진!",
+    ar:"과신을 줄이고, 체력 관리에 집중하세요." },
+  { n:"XX. 심판 (Judgement) 🎺",
+    u:["부활","평가","결정"], r:["후회","미완","연기"],
+    au:"과거의 자신을 호출해 결정을 마무리!",
+    ar:"판단 보류 OK. 자료를 더 모으세요." },
+  { n:"XXI. 세계 (The World) 🌍",
+    u:["완성","통합","여행"], r:["미완성","마무리지연","흩어짐"],
+    au:"끝까지 수습하면 다음 레벨이 열립니다.",
+    ar:"마무리 체크리스트로 누락을 막으세요." },
+];
+
+/** -------- 유틸(시드 랜덤, 날짜키, 로컬스토리지) -------- */
+const pad = n => n.toString().padStart(2,"0");
+const todayKey = ()=>{
+  const now = new Date(); const y=now.getFullYear(), m=pad(now.getMonth()+1), d=pad(now.getDate());
+  return `${y}${m}${d}`;
+};
+function seededRandom(seedStr){
+  let h = 1779033703 ^ seedStr.length;
+  for (let i=0;i<seedStr.length;i++){ h=Math.imul(h ^ seedStr.charCodeAt(i),3432918353); h=(h<<13)|(h>>>19); }
+  return function(){
+    h = Math.imul(h ^ (h>>>16),2246822507);
+    h = Math.imul(h ^ (h>>>13),3266489909);
+    const t = (h ^= h>>>16) >>> 0;
+    return t/4294967296;
+  }
+}
+const saveToday = data => localStorage.setItem("tarot.daily."+todayKey(), JSON.stringify(data));
+const loadToday = () => { try{ const v=localStorage.getItem("tarot.daily."+todayKey()); return v?JSON.parse(v):null }catch(e){return null} }
+const clearToday = () => localStorage.removeItem("tarot.daily."+todayKey());
+
+/** -------- 분야별 해석 생성기(카드·방향·키워드 기반, 날짜 시드로 변주) -------- */
+const pick = (rnd, arr)=> arr[Math.floor(rnd()*arr.length)];
+function domainAdvice(card, upright, domain, seed){
+  // 도메인별 템플릿
+  const T = {
+    love:{
+      u:[
+        "감정의 {tone} 흐름. 솔직한 대화가 매력을 높입니다.",
+        "새 인연/관계 회복 운세 ↑. {tip}",
+        "관계의 리듬을 맞추면 거리감이 줄어듭니다."
+      ],
+      r:[
+        "감정 기복 주의. {trap}에 휘둘리지 않도록 경계하세요.",
+        "서두르면 오해가 커집니다. {tip}",
+        "관계의 경계 재설정이 필요합니다."
+      ],
+      tips:["작은 연락 먼저","만남보다 대화의 질","감정 기록하기","기대치 조율하기"],
+      traps:["과도한 기대","확신 없는 밀당","비교 습관","답정너 대화"]
+    },
+    work:{
+      u:[
+        "업무의 {tone} 흐름. 핵심 1가지에 집중하면 성과가 납니다.",
+        "도움/멘토 운세가 있어요. {tip}",
+        "타이밍이 좋습니다. 실행에 옮기세요."
+      ],
+      r:[
+        "우선순위 혼선 주의. {trap}를 줄이세요.",
+        "속도를 낮추고 정합성을 점검할 때입니다.",
+        "관성대로 가지 말고 프로세스를 재정비하세요."
+      ],
+      tips:["레퍼런스 확보","메모로 흐름 잡기","오늘 1태스크 완주","데드라인 재확인"],
+      traps:["회의 과다","컨텍스트 스위칭","미루기","완벽주의 루프"]
+    },
+    money:{
+      u:[
+        "현금흐름이 {tone}. {tip}에 포커스 하세요.",
+        "작은 절약/수익화 아이디어가 효율을 만듭니다.",
+        "계획적 지출이 수익률을 지킵니다."
+      ],
+      r:[
+        "충동소비/과신 주의. {trap} 피하기.",
+        "큰 베팅은 보류. 현금쿠션을 먼저.",
+        "조건 확인 없이 서명 금지—조항을 재검토!"
+      ],
+      tips:["지출 카테고리 제한","구독 점검","가격 비교","예비비 우선"],
+      traps:["무이자에 방심","할인 유혹","정보 비대칭","수익률 과대평가"]
+    }
+  };
+  // 카드 성향에서 tone 추출
+  const tone = upright ? pick(seededRandom(seed+"tone"), ["맑고 경쾌한","안정적인","확장적인"])
+                       : pick(seededRandom(seed+"tone"), ["울퉁불퉁한","흐릿한","변덕스러운"]);
+  // 키워드 힌트
+  const kws = upright ? card.u : card.r;
+  const kw = kws[0] || "흐름";
+  const rnd = seededRandom(seed+domain+card.n+(upright?"U":"R"));
+  const box = T[domain];
+  const tpl = upright ? pick(rnd, box.u) : pick(rnd, box.r);
+  const tip = pick(rnd, box.tips);
+  const trap = pick(rnd, box.traps);
+  return tpl.replace("{tone}", kw).replace("{tip}", tip).replace("{trap}", trap);
+}
+
+/** -------- 렌더/상호작용 -------- */
+const dateText = document.getElementById("dateText");
+const cardEl   = document.getElementById("card");
+const nameEl   = document.getElementById("cardName");
+const dirEl    = document.getElementById("cardDir");
+const kwEl     = document.getElementById("keywords");
+const advEl    = document.getElementById("advice");
+const drawBtn  = document.getElementById("drawBtn");
+const flipBtn  = document.getElementById("flipBtn");
+const shareBtn = document.getElementById("shareBtn");
+const resetBtn = document.getElementById("resetBtn");
+
+const tabGeneral = document.getElementById("tabGeneral");
+const tabLove = document.getElementById("tabLove");
+const tabWork = document.getElementById("tabWork");
+const tabMoney = document.getElementById("tabMoney");
+const panelTitle = document.getElementById("panelTitle");
+const line1 = document.getElementById("line1");
+const line2 = document.getElementById("line2");
+const line3 = document.getElementById("line3");
+
+function fmtDateHuman(){
+  const now = new Date();
+  const ds = new Intl.DateTimeFormat("ko-KR", { dateStyle:"full" }).format(now);
+  return ds.replace(/\s*역\s*$/,"");
+}
+dateText.textContent = fmtDateHuman();
+
+function renderResult(res){
+  if(!res){
+    nameEl.textContent = "카드를 뽑아보세요";
+    dirEl.textContent = "정/역방향";
+    kwEl.innerHTML = "";
+    advEl.textContent = "오늘의 메시지가 여기에 표시됩니다.";
+    advEl.className = "advice";
+    renderDomainPanel(null);
+    return;
+  }
+  const card = MAJOR[res.idx];
+  const isUpright = res.upright;
+  nameEl.textContent = card.n;
+  dirEl.textContent = isUpright ? "정방향" : "역방향";
+  kwEl.innerHTML = "";
+  (isUpright?card.u:card.r).forEach(k=>{
+    const span=document.createElement("span"); span.className="pill"; span.textContent=k; kwEl.appendChild(span);
+  });
+  advEl.textContent = isUpright ? card.au : card.ar;
+  advEl.className = "advice " + (isUpright ? "good" : (res.idx===15||res.idx===16 ? "bad" : ""));
+  renderDomainPanel(res);
+}
+
+function flipCard(toBack=true){
+  const flipped = cardEl.classList.contains("flipped");
+  if(toBack && !flipped) cardEl.classList.add("flipped");
+  if(!toBack && flipped) cardEl.classList.remove("flipped");
+}
+
+function drawToday(){
+  const seed = todayKey();
+  const rnd = seededRandom(seed);
+  const idx = Math.floor(rnd()*MAJOR.length);
+  const upright = rnd()<0.5;
+  const result = { key: seed, idx, upright, ts: Date.now() };
+  saveToday(result);
+  return result;
+}
+
+/** -------- 분야 탭 렌더링 -------- */
+let currentRes = null;
+let currentTab = "general";
+function setTab(tab){
+  currentTab = tab;
+  [tabGeneral,tabLove,tabWork,tabMoney].forEach(b=>b.setAttribute("aria-selected","false"));
+  ({"general":tabGeneral,"love":tabLove,"work":tabWork,"money":tabMoney}[tab]).setAttribute("aria-selected","true");
+  renderDomainPanel(currentRes);
+}
+function renderDomainPanel(res){
+  if(!res){
+    panelTitle.textContent = "오늘의 핵심";
+    line1.textContent = "카드를 뽑으면 분야별 해석이 표시됩니다.";
+    line2.textContent = ""; line3.textContent = "";
+    return;
+  }
+  currentRes = res;
+  const card = MAJOR[res.idx];
+  const seed = res.key;
+  if(currentTab==="general"){
+    panelTitle.textContent = "핵심 요약";
+    line1.textContent = (res.upright?card.au:card.ar);
+    line2.textContent = `키워드: ${(res.upright?card.u:card.r).join(", ")}`;
+    line3.textContent = `카드: ${card.n} · ${res.upright?"정방향":"역방향"}`;
+    return;
+  }
+  const advLove  = domainAdvice(card, res.upright, "love",  seed);
+  const advWork  = domainAdvice(card, res.upright, "work",  seed);
+  const advMoney = domainAdvice(card, res.upright, "money", seed);
+  if(currentTab==="love"){
+    panelTitle.textContent = "사랑 운세";
+    line1.textContent = advLove;
+    line2.textContent = "☑︎ 대화의 질 > 횟수 · 경계/기대치 조율";
+    line3.textContent = "팁: 작은 친절/메시지로 리드해보세요.";
+  }else if(currentTab==="work"){
+    panelTitle.textContent = "일(커리어) 운세";
+    line1.textContent = advWork;
+    line2.textContent = "☑︎ 오늘 한 가지 완주 · 데이터로 설득";
+    line3.textContent = "팁: 마감·의사결정 포인트를 먼저 적기";
+  }else{
+    panelTitle.textContent = "금전 운세";
+    line1.textContent = advMoney;
+    line2.textContent = "☑︎ 충동구매 방지 · 구독/고정비 점검";
+    line3.textContent = "팁: 오늘은 비교·보류·예비비 강화";
+  }
+}
+
+function applyExistingOrDraw(){
+  let res = loadToday();
+  if(!res) res = drawToday();
+  renderResult(res);
+  currentRes = res;
+  setTimeout(()=>flipCard(true), 300);
+  drawBtn.disabled = true;
+}
+
+drawBtn.addEventListener("click", applyExistingOrDraw);
+flipBtn.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
+cardEl.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
+resetBtn.addEventListener("click", ()=>{
+  clearToday(); renderResult(null); flipCard(false); drawBtn.disabled = false; setTab("general");
+});
+shareBtn.addEventListener("click", async ()=>{
+  const cur = loadToday();
+  if(!cur){ alert("아직 오늘의 카드를 뽑지 않았어요!"); return; }
+  const c = MAJOR[cur.idx];
+  const dir = cur.upright ? "정방향" : "역방향";
+  const kws = (cur.upright ? c.u : c.r).join(", ");
+  const msg = `🔮 오늘의 타로 (${fmtDateHuman()})
+카드: ${c.n} · ${dir}
+키워드: ${kws}
+핵심: ${cur.upright ? c.au : c.ar}`;
+  try{
+    if (navigator.share) await navigator.share({ title:"오늘의 타로", text:msg });
+    else { await navigator.clipboard.writeText(msg); alert("복사 완료! 원하는 곳에 붙여넣기 하세요."); }
+  }catch(e){}
+});
+
+// 탭 이벤트
+tabGeneral.addEventListener("click", ()=>setTab("general"));
+tabLove.addEventListener("click", ()=>setTab("love"));
+tabWork.addEventListener("click", ()=>setTab("work"));
+tabMoney.addEventListener("click", ()=>setTab("money"));
+
+// 초기 표시
+window.addEventListener("DOMContentLoaded", ()=>{
+  dateText.textContent = fmtDateHuman();
+  const existing = loadToday();
+  if(existing){ renderResult(existing); flipCard(true); drawBtn.disabled = true; }
+});
+</script>
+</body>
+</html>
 <body> ... </body>
 </html>
