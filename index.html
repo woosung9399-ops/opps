@@ -3,18 +3,21 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>오늘의 타로 · 무제한 랜덤</title>
+<title>오늘의 타로</title>
+<meta name="description" content="버튼을 누를 때마다 무제한으로 카드를 뽑고, 사랑/일/금전 해석과 공유, 히스토리, 시드 링크를 지원합니다." />
 <style>
   :root{
     --bg:#0f0f14;--card:#181820;--accent:#7c5cff;--text:#f5f5f7;--muted:#b9b8c6;--good:#58d68d;--bad:#ff7675;
+    --ring:rgba(124,92,255,.6);
   }
   *{box-sizing:border-box}
+  html:focus-within { scroll-behavior:smooth }
   body{
     margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Pretendard","Segoe UI",sans-serif;
     background: radial-gradient(1200px 600px at 50% -10%, #222 0%, #111 40%, #0a0a0f 100%);
     color:var(--text); display:flex; min-height:100dvh; align-items:center; justify-content:center; padding:24px;
   }
-  .app{width:100%; max-width:680px}
+  .app{width:100%; max-width:780px}
   header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
   h1{font-size:1.25rem; margin:0; letter-spacing:.02em}
   .date{color:var(--muted); font-size:.9rem}
@@ -24,13 +27,14 @@
     box-shadow: 0 10px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
   }
   .grid{display:grid; grid-template-columns:1fr; gap:14px}
-  @media (min-width:850px){ .grid{grid-template-columns: 300px 1fr} }
+  @media (min-width:920px){ .grid{grid-template-columns: 320px 1fr} }
   .cardbox{display:flex; justify-content:center; perspective:1000px;}
   .card{
-    width:min(80vw,280px); height:420px; border-radius:16px; position:relative; cursor:pointer;
+    width:min(80vw,300px); height:450px; border-radius:16px; position:relative; cursor:pointer;
     transform-style:preserve-3d; transition:transform .8s cubic-bezier(.2,.7,.2,1);
   }
   .card.flipped{transform:rotateY(180deg)}
+  @media (prefers-reduced-motion: reduce){ .card{ transition:none } }
   .face{position:absolute; inset:0; backface-visibility:hidden; border-radius:16px; overflow:hidden;
     display:flex; align-items:center; justify-content:center; box-shadow:0 16px 40px rgba(0,0,0,.45)}
   .front{
@@ -62,11 +66,12 @@
     border:1px solid rgba(124,92,255,.35); padding:12px 14px; border-radius:12px; text-align:center}
   .advice.good{background:rgba(88,214,141,.08); border-color:rgba(88,214,141,.4)}
   .advice.bad{background:rgba(255,118,117,.08); border-color:rgba(255,118,117,.45)}
-  .btns{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:8px}
+  .btns{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:10px}
   button{
-    all:unset; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.14);
+    all:unset; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.18);
     background:rgba(255,255,255,.06); cursor:pointer; font-weight:600; letter-spacing:.01em; text-align:center
   }
+  button:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; border-color:transparent }
   button.primary{background:linear-gradient(180deg, #7c5cff, #5f45e6); border-color:#7c5cff}
   button.ghost[aria-selected="true"]{outline:2px solid var(--accent)}
   .panel{
@@ -76,21 +81,28 @@
   .list{display:grid; gap:8px}
   .line{font-size:.98rem; line-height:1.55; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); padding:10px 12px; border-radius:10px}
   footer{margin-top:12px; text-align:center; color:var(--muted); font-size:.85rem}
+  .row{display:grid; gap:10px}
+  @media(min-width:560px){ .row{grid-template-columns:1fr 1fr} }
+  .history{display:grid; gap:8px; max-height:210px; overflow:auto; padding-right:4px}
+  .hist-item{display:flex; align-items:center; gap:8px; font-size:.92rem; padding:8px 10px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:10px}
+  .dot{width:8px; height:8px; border-radius:50%}
+  .dot.u{background:var(--good)} .dot.r{background:var(--bad)}
+  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:.85rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); padding:.1rem .4rem; border-radius:6px}
 </style>
 </head>
 <body>
   <div class="app">
     <header>
       <h1>오늘의 타로</h1>
-      <div class="date" id="dateText"></div>
+      <div class="date" id="dateText" aria-live="polite"></div>
     </header>
 
-    <div class="wrap">
+    <div class="wrap" role="region" aria-label="타로 카드 영역">
       <div class="grid">
         <!-- 카드 -->
         <div>
           <div class="cardbox">
-            <div id="card" class="card">
+            <div id="card" class="card" role="button" tabindex="0" aria-pressed="false" aria-label="카드 뒤집기">
               <div class="face front" title="카드를 탭해 뒤집기">
                 <div class="sigil">🔮</div>
                 <div class="brand">TAROT · RANDOM</div>
@@ -106,38 +118,49 @@
             </div>
           </div>
           <div class="btns" style="margin-top:10px">
-            <button id="drawBtn" class="primary">카드 뽑기</button>
-            <button id="flipBtn">카드 뒤집기</button>
-            <button id="shareBtn">공유</button>
+            <button id="drawBtn" class="primary" title="새 카드를 뽑습니다 (단축키: D)">카드 뽑기</button>
+            <button id="flipBtn" title="카드를 뒤집습니다 (단축키: F)">카드 뒤집기</button>
+            <button id="shareBtn" title="텍스트로 공유하거나 복사합니다">공유</button>
+            <button id="linkBtn" title="같은 결과를 열 수 있는 링크 생성">링크</button>
             <button id="resetBtn" title="화면 초기화">초기화</button>
           </div>
+          <div class="date" style="margin-top:8px">단축키: <span class="kbd">D</span> 뽑기 · <span class="kbd">F</span> 뒤집기 · <span class="kbd">L</span> 링크</div>
         </div>
 
-        <!-- 분야별 해석 -->
-        <div>
-          <div class="btns" role="tablist" aria-label="분야 선택">
-            <button class="ghost" id="tabGeneral" role="tab" aria-selected="true">전체</button>
-            <button class="ghost" id="tabLove" role="tab" aria-selected="false">사랑</button>
-            <button class="ghost" id="tabWork" role="tab" aria-selected="false">일</button>
-            <button class="ghost" id="tabMoney" role="tab" aria-selected="false">금전</button>
+        <!-- 우측 패널 -->
+        <div class="row">
+          <div>
+            <div class="btns" role="tablist" aria-label="분야 선택">
+              <button class="ghost" id="tabGeneral" role="tab" aria-selected="true">전체</button>
+              <button class="ghost" id="tabLove" role="tab" aria-selected="false">사랑</button>
+              <button class="ghost" id="tabWork" role="tab" aria-selected="false">일</button>
+              <button class="ghost" id="tabMoney" role="tab" aria-selected="false">금전</button>
+            </div>
+            <div class="panel" id="panel">
+              <h3 id="panelTitle">오늘의 핵심</h3>
+              <div class="list">
+                <div class="line" id="line1">카드를 뽑으면 분야별 해석이 표시됩니다.</div>
+                <div class="line" id="line2"></div>
+                <div class="line" id="line3"></div>
+              </div>
+            </div>
           </div>
-          <div class="panel" id="panel">
-            <h3 id="panelTitle">오늘의 핵심</h3>
-            <div class="list">
-              <div class="line" id="line1">카드를 뽑으면 분야별 해석이 표시됩니다.</div>
-              <div class="line" id="line2"></div>
-              <div class="line" id="line3"></div>
+          <div>
+            <div class="panel">
+              <h3 style="margin-bottom:8px">최근 뽑은 카드</h3>
+              <div class="history" id="history" aria-live="polite"></div>
+              <div class="date" style="margin-top:6px">최대 10개 저장 · 기기 로컬에만 보관됩니다</div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <footer>무제한 랜덤 버전 · 버튼을 누를 때마다 새로운 카드가 나옵니다</footer>
+    <footer>무제한 랜덤 · 공유/링크/히스토리 지원 · <span id="ver">v2</span></footer>
   </div>
 
 <script>
-/** -------- 타로 데이터(메이저 22장) -------- */
+/**************** 타로 데이터(메이저 22장) ****************/
 const MAJOR = [
   { n:"0. 바보 (The Fool) 🃏",
     u:["새출발","즉흥","자유"], r:["무모","불안정","방황"],
@@ -229,91 +252,46 @@ const MAJOR = [
     ar:"마무리 체크리스트로 누락을 막으세요." },
 ];
 
-/** -------- 유틸 & 분야별 해석 -------- */
-const dateText = document.getElementById("dateText");
+/**************** 유틸 ****************/
+const $ = sel => document.querySelector(sel);
+const dateText = $("#dateText");
+const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function fmtDateHuman(){ return new Intl.DateTimeFormat("ko-KR",{dateStyle:"full"}).format(new Date()).replace(/\s*역\s*$/,""); }
-dateText.textContent = fmtDateHuman();
+function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
-const pick = (arr)=> arr[Math.floor(Math.random()*arr.length)];
-function domainAdvice(card, upright, domain){
-  const T = {
-    love:{
-      u:[
-        "감정의 {tone} 흐름. 솔직한 대화가 매력을 높입니다.",
-        "새 인연/관계 회복 운세 ↑. {tip}",
-        "관계의 리듬을 맞추면 거리감이 줄어듭니다."
-      ],
-      r:[
-        "감정 기복 주의. {trap}에 휘둘리지 않도록 경계하세요.",
-        "서두르면 오해가 커집니다. {tip}",
-        "관계의 경계 재설정이 필요합니다."
-      ],
-      tips:["작은 연락 먼저","만남보다 대화의 질","감정 기록하기","기대치 조율하기"],
-      traps:["과도한 기대","확신 없는 밀당","비교 습관","답정너 대화"]
-    },
-    work:{
-      u:[
-        "업무의 {tone} 흐름. 핵심 1가지에 집중하면 성과가 납니다.",
-        "도움/멘토 운세가 있어요. {tip}",
-        "타이밍이 좋습니다. 실행에 옮기세요."
-      ],
-      r:[
-        "우선순위 혼선 주의. {trap}를 줄이세요.",
-        "속도를 낮추고 정합성을 점검할 때입니다.",
-        "관성대로 가지 말고 프로세스를 재정비하세요."
-      ],
-      tips:["레퍼런스 확보","메모로 흐름 잡기","오늘 1태스크 완주","데드라인 재확인"],
-      traps:["회의 과다","컨텍스트 스위칭","미루기","완벽주의 루프"]
-    },
-    money:{
-      u:[
-        "현금흐름이 {tone}. {tip}에 포커스 하세요.",
-        "작은 절약/수익화 아이디어가 효율을 만듭니다.",
-        "계획적 지출이 수익률을 지킵니다."
-      ],
-      r:[
-        "충동소비/과신 주의. {trap} 피하기.",
-        "큰 베팅은 보류. 현금쿠션을 먼저.",
-        "조건 확인 없이 서명 금지—조항을 재검토!"
-      ],
-      tips:["지출 카테고리 제한","구독 점검","가격 비교","예비비 우선"],
-      traps:["무이자에 방심","할인 유혹","정보 비대칭","수익률 과대평가"]
-    }
-  };
-  const tone = upright ? pick(["맑고 경쾌한","안정적인","확장적인"])
-                       : pick(["울퉁불퉁한","흐릿한","변덕스러운"]);
-  const kws = upright ? card.u : card.r;
-  const tpl = upright ? pick(T[domain].u) : pick(T[domain].r);
-  const tip = pick(T[domain].tips);
-  const trap = pick(T[domain].traps);
-  return tpl.replace("{tone}", kws[0]||"흐름").replace("{tip}", tip).replace("{trap}", trap);
-}
+// LCG 기반 시드 난수 (링크 공유용 재현 가능)
+function LCG(seed){ let s = seed>>>0; return () => (s = (s*1664525 + 1013904223)>>>0) / 2**32 }
+function parseSeed(){ const u=new URL(location.href); const s=u.searchParams.get('s'); return s? Number(s): null }
+function makeSeedLink(res){ const u=new URL(location.href); const seed = (res.seed||Date.now())>>>0; u.searchParams.set('s', String(seed)); return u.toString() }
 
-/** -------- 엘리먼트 -------- */
-const cardEl   = document.getElementById("card");
-const nameEl   = document.getElementById("cardName");
-const dirEl    = document.getElementById("cardDir");
-const kwEl     = document.getElementById("keywords");
-const advEl    = document.getElementById("advice");
-const drawBtn  = document.getElementById("drawBtn");
-const flipBtn  = document.getElementById("flipBtn");
-const shareBtn = document.getElementById("shareBtn");
-const resetBtn = document.getElementById("resetBtn");
+/**************** 엘리먼트 ****************/
+const cardEl   = $("#card");
+const nameEl   = $("#cardName");
+const dirEl    = $("#cardDir");
+const kwEl     = $("#keywords");
+const advEl    = $("#advice");
+const drawBtn  = $("#drawBtn");
+const flipBtn  = $("#flipBtn");
+const shareBtn = $("#shareBtn");
+const linkBtn  = $("#linkBtn");
+const resetBtn = $("#resetBtn");
 
-const tabGeneral = document.getElementById("tabGeneral");
-const tabLove = document.getElementById("tabLove");
-const tabWork = document.getElementById("tabWork");
-const tabMoney = document.getElementById("tabMoney");
-const panelTitle = document.getElementById("panelTitle");
-const line1 = document.getElementById("line1");
-const line2 = document.getElementById("line2");
-const line3 = document.getElementById("line3");
+const tabGeneral = $("#tabGeneral");
+const tabLove = $("#tabLove");
+const tabWork = $("#tabWork");
+const tabMoney = $("#tabMoney");
+const panelTitle = $("#panelTitle");
+const line1 = $("#line1");
+const line2 = $("#line2");
+const line3 = $("#line3");
+const historyEl = $("#history");
 
-/** -------- 상태 -------- */
-let currentRes = null;
+/**************** 상태 ****************/
+let currentRes = null; // {idx, upright, ts, seed}
 let currentTab = "general";
+const HISTORY_KEY = 'tarotHistoryV2';
 
-/** -------- 렌더링 -------- */
+/**************** 렌더링 ****************/
 function renderResult(res){
   if(!res){
     nameEl.textContent = "카드를 뽑아보세요";
@@ -367,22 +345,121 @@ function renderDomainPanel(res){
   }
 }
 
-/** -------- 동작 -------- */
+/**************** 분야별 해석 ****************/
+const pick = (arr)=> arr[Math.floor(Math.random()*arr.length)];
+function domainAdvice(card, upright, domain){
+  const T = {
+    love:{
+      u:[
+        "감정의 {tone} 흐름. 솔직한 대화가 매력을 높입니다.",
+        "새 인연/관계 회복 운세 ↑. {tip}",
+        "관계의 리듬을 맞추면 거리감이 줄어듭니다."
+      ],
+      r:[
+        "감정 기복 주의. {trap}에 휘둘리지 않도록 경계하세요.",
+        "서두르면 오해가 커집니다. {tip}",
+        "관계의 경계 재설정이 필요합니다."
+      ],
+      tips:["작은 연락 먼저","만남보다 대화의 질","감정 기록하기","기대치 조율하기"],
+      traps:["과도한 기대","확신 없는 밀당","비교 습관","답정너 대화"]
+    },
+    work:{
+      u:[
+        "업무의 {tone} 흐름. 핵심 1가지에 집중하면 성과가 납니다.",
+        "도움/멘토 운세가 있어요. {tip}",
+        "타이밍이 좋습니다. 실행에 옮기세요."
+      ],
+      r:[
+        "우선순위 혼선 주의. {trap}를 줄이세요.",
+        "속도를 낮추고 정합성을 점검할 때입니다.",
+        "관성대로 가지 말고 프로세스를 재정비하세요."
+      ],
+      tips:["레퍼런스 확보","메모로 흐름 잡기","오늘 1태스크 완주","데드라인 재확인"],
+      traps:["회의 과다","컨텍스트 스위칭","미루기","완벽주의 루프"]
+    },
+    money:{
+      u:[
+        "현금흐름이 {tone}. {tip}에 포커스 하세요.",
+        "작은 절약/수익화 아이디어가 효율을 만듭니다.",
+        "계획적 지출이 수익률을 지킵니다."
+      ],
+      r:[
+        "충동소비/과신 주의. {trap} 피하기.",
+        "큰 베팅은 보류. 현금쿠션을 먼저.",
+        "조건 확인 없이 서명 금지—조항을 재검토!"
+      ],
+      tips:["지출 카테고리 제한","구독 점검","가격 비교","예비비 우선"],
+      traps:["무이자에 방심","할인 유혹","정보 비대칭","수익률 과대평가"]
+    }
+  };
+  const tone = upright ? pick(["맑고 경쾌한","안정적인","확장적인"]) : pick(["울퉁불퉁한","흐릿한","변덕스러운"]);
+  const kws = upright ? card.u : card.r;
+  const tpl = upright ? pick(T[domain].u) : pick(T[domain].r);
+  const tip = pick(T[domain].tips);
+  const trap = pick(T[domain].traps);
+  return tpl.replace("{tone}", kws[0]||"흐름").replace("{tip}", tip).replace("{trap}", trap);
+}
+
+/**************** 히스토리 ****************/
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); }catch{ return [] }
+}
+function saveHistory(list){
+  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0,10))); }catch{}
+}
+function pushHistory(res){
+  const card = MAJOR[res.idx];
+  const entry = { t: res.ts, n: card.n, u: res.upright, s: res.seed||null };
+  const list = [entry, ...loadHistory()].slice(0,10);
+  saveHistory(list); renderHistory(list);
+}
+function renderHistory(list=loadHistory()){
+  historyEl.innerHTML = '';
+  if(!list.length){ historyEl.innerHTML = '<div class="date">기록 없음</div>'; return; }
+  list.forEach(e=>{
+    const div = document.createElement('div'); div.className='hist-item';
+    const dot = document.createElement('div'); dot.className = 'dot '+(e.u?'u':'r'); div.appendChild(dot);
+    const txt = document.createElement('div');
+    const d = new Date(e.t);
+    txt.textContent = `${new Intl.DateTimeFormat('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(d)} · ${e.n} · ${e.u?'정':'역'}`;
+    div.appendChild(txt);
+    div.addEventListener('click',()=>{
+      // 재현 링크가 있으면 열기, 없으면 현재에 적용
+      if(e.s!=null){ location.href = setSeedInUrl(e.s); }
+      else { currentRes = { idx: nameToIndex(e.n), upright:e.u, ts: Date.now() }; renderResult(currentRes); flipCard(true); }
+    });
+    historyEl.appendChild(div);
+  });
+}
+function nameToIndex(name){ return clamp(MAJOR.findIndex(c=>c.n===name),0,MAJOR.length-1) }
+function setSeedInUrl(seed){ const u=new URL(location.href); u.searchParams.set('s', String(seed>>>0)); return u.toString(); }
+
+/**************** 동작 ****************/
 function flipCard(toBack=true){
   const flipped = cardEl.classList.contains("flipped");
   if(toBack && !flipped) cardEl.classList.add("flipped");
   if(!toBack && flipped) cardEl.classList.remove("flipped");
 }
 function drawRandom(){
+  // 시드 파라미터가 있으면 재현가능 결과 생성
+  const seedParam = parseSeed();
+  if(seedParam!=null){
+    const rnd = LCG(seedParam);
+    const idx = Math.floor(rnd()*MAJOR.length);
+    const upright = rnd() < 0.5;
+    return { idx, upright, ts: Date.now(), seed: seedParam };
+  }
   const idx = Math.floor(Math.random()*MAJOR.length);
   const upright = Math.random() < 0.5;
-  return { idx, upright, ts: Date.now() };
+  return { idx, upright, ts: Date.now(), seed: Date.now() };
 }
-function applyDraw(){
+function applyDraw({autoFlipDelay=250}={}){
   const res = drawRandom();
   currentRes = res;
   renderResult(res);
-  setTimeout(()=>flipCard(true), 250);
+  if(navigator.vibrate) try{ navigator.vibrate(8); }catch{}
+  if(!isReduced) setTimeout(()=>flipCard(true), autoFlipDelay);
+  pushHistory(res);
 }
 function setTab(tab){
   currentTab = tab;
@@ -391,38 +468,51 @@ function setTab(tab){
   renderDomainPanel(currentRes);
 }
 
-/** -------- 이벤트 -------- */
-drawBtn.addEventListener("click", applyDraw);
+/**************** 이벤트 ****************/
+drawBtn.addEventListener("click", ()=>applyDraw({autoFlipDelay:250}));
 flipBtn.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
 cardEl.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
+cardEl.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); cardEl.classList.toggle('flipped'); }});
 resetBtn.addEventListener("click", ()=>{
-  currentRes = null;
-  renderResult(null);
-  flipCard(false);
+  currentRes = null; renderResult(null); flipCard(false);
 });
 shareBtn.addEventListener("click", async ()=>{
   if(!currentRes){ alert("먼저 카드를 뽑아주세요!"); return; }
   const c = MAJOR[currentRes.idx];
   const dir = currentRes.upright ? "정방향" : "역방향";
   const kws = (currentRes.upright ? c.u : c.r).join(", ");
-  const msg = `🔮 오늘의 타로 (${fmtDateHuman()})
-카드: ${c.n} · ${dir}
-키워드: ${kws}
-핵심: ${currentRes.upright ? c.au : c.ar}`;
+  const msg = `🔮 오늘의 타로 (${fmtDateHuman()})\n카드: ${c.n} · ${dir}\n키워드: ${kws}\n핵심: ${currentRes.upright ? c.au : c.ar}`;
   try{
     if (navigator.share) await navigator.share({ title:"오늘의 타로", text:msg });
     else { await navigator.clipboard.writeText(msg); alert("복사 완료! 원하는 곳에 붙여넣기 하세요."); }
   }catch(e){}
 });
+linkBtn.addEventListener('click', async ()=>{
+  if(!currentRes){ alert('먼저 카드를 뽑아주세요!'); return; }
+  const url = makeSeedLink(currentRes);
+  try{ await navigator.clipboard.writeText(url); alert('링크가 복사되었습니다!'); }
+  catch{ prompt('아래 링크를 복사하세요', url); }
+});
 
 // 탭
-tabGeneral.addEventListener("click", ()=>setTab("general"));
-tabLove.addEventListener("click", ()=>setTab("love"));
-tabWork.addEventListener("click", ()=>setTab("work"));
-tabMoney.addEventListener("click", ()=>setTab("money"));
+[ [tabGeneral,'general'],[tabLove,'love'],[tabWork,'work'],[tabMoney,'money'] ].forEach(([btn,tab])=> btn.addEventListener('click',()=>setTab(tab)) );
+
+// 단축키
+window.addEventListener('keydown',(e)=>{
+  if(e.target && ['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if(e.key==='d' || e.key==='D') applyDraw({autoFlipDelay:200});
+  if(e.key==='f' || e.key==='F') cardEl.classList.toggle('flipped');
+  if(e.key==='l' || e.key==='L') linkBtn.click();
+});
 
 // 초기
-dateText.textContent = fmtDateHuman();
+function init(){
+  dateText.textContent = fmtDateHuman();
+  renderHistory();
+  // 시드가 있는 경우 자동 뽑기 + 바로 뒤집기
+  if(parseSeed()!=null){ applyDraw({autoFlipDelay: isReduced?0:120}); }
+}
+init();
 </script>
 </body>
 </html>
