@@ -1,172 +1,191 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>오늘의 타로</title>
-<meta name="description" content="버튼을 누를 때마다 무제한으로 카드를 뽑고, 사랑/일/금전 해석과 공유, 히스토리, 시드 링크를 지원합니다." />
-<meta name="theme-color" content="#0f0f14" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>포춘쿠키 오늘의 운세</title>
+<meta name="theme-color" content="#FFE18A"/>
+<meta name="description" content="포춘쿠키를 열면 오늘의 운세가 펼쳐집니다. 금전·직장·애정·학업·건강 점수와 행운 키워드 제공."/>
 <style>
   :root{
-    --bg:#0f0f14;--card:#181820;--accent:#7c5cff;--text:#f5f5f7;--muted:#b9b8c6;--good:#58d68d;--bad:#ff7675;
-    --ring:rgba(124,92,255,.6);
+    --grid:#f8d875;
+    --bg:#ffe18a;
+    --ink:#5a3b1a;
+    --accent:#ff8a42;
+    --accent-deep:#ea6a1b;
+    --card:#fffaf0;
+    --muted:#8b6d4e;
+    --good:#ff8a42;
   }
   *{box-sizing:border-box}
-  html:focus-within { scroll-behavior:smooth }
+  html:focus-within{scroll-behavior:smooth}
   body{
-    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Pretendard","Segoe UI",sans-serif;
-    background: radial-gradient(1200px 600px at 50% -10%, #222 0%, #111 40%, #0a0a0f 100%);
-    color:var(--text); display:flex; min-height:100dvh; align-items:center; justify-content:center; padding:24px;
+    margin:0; font-family:ui-sans-serif, system-ui, -apple-system, "Pretendard","Segoe UI",sans-serif;
+    color:var(--ink); background:
+      repeating-linear-gradient(0deg, var(--bg), var(--bg) 48px, var(--grid) 48px, var(--grid) 50px),
+      var(--bg);
+    min-height:100dvh;
   }
-  .app{width:100%; max-width:780px}
-  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
-  h1{font-size:1.25rem; margin:0; letter-spacing:.02em}
-  .date{color:var(--muted); font-size:.9rem}
-  .wrap{
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-    border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px 16px 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+
+  /* ===== 공통 헤더/푸터 ===== */
+  .site-header{
+    position:sticky; top:0; z-index:10;
+    display:flex; align-items:center; gap:12px; justify-content:space-between;
+    background:#fff; padding:10px 14px; border-bottom:1px solid #e5e7eb;
   }
-  .grid{display:grid; grid-template-columns:1fr; gap:14px}
-  @media (min-width:920px){ .grid{grid-template-columns: 320px 1fr} }
-  .cardbox{display:flex; justify-content:center; perspective:1000px;}
+  .site-header .logo img{height:28px; max-width:140px; object-fit:contain; display:block}
+  .site-header h1{margin:0; font-size:1.05rem; color:#111; text-align:center; flex:1}
+  .site-header .today{font-size:.9rem; color:#444}
+
+  footer{
+    position:fixed; left:0; right:0; bottom:0; text-align:center; padding:10px 0;
+    font-size:.85rem; color:#6b7280; background:rgba(255,255,255,.6); backdrop-filter:blur(6px);
+    border-top:1px solid #e5e7eb;
+  }
+
+  /* ===== 뷰 전환 ===== */
+  .container{max-width:860px; margin:0 auto; padding:16px; padding-bottom:72px}
+  .view{display:none; animation:.35s ease both fadeInUp}
+  .view.active{display:block}
+  @keyframes fadeInUp{from{opacity:0; transform:translate3d(0,10px,0)} to{opacity:1; transform:none}}
+
+  /* ===== 인트로 ===== */
+  .intro{
+    display:grid; place-items:center; min-height:calc(100svh - 120px);
+    text-align:center; gap:14px;
+  }
+  .intro h2{
+    margin:0; font-size:1.8rem; line-height:1.25; letter-spacing:.01em; color:#7b4b22;
+    text-shadow:0 2px 0 rgba(255,255,255,.35);
+  }
+  .intro p{margin:0; color:var(--muted)}
+  .plate{
+    margin-top:8px; width:min(78vw,360px); aspect-ratio:1/1; border-radius:50%;
+    background:
+      radial-gradient(closest-side, #fff 0 55%, transparent 56%),
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.03), rgba(0,0,0,0) 60%),
+      #f9f9f9;
+    box-shadow: 0 20px 40px rgba(0,0,0,.18) inset, 0 24px 40px rgba(0,0,0,.18);
+    display:grid; place-items:center; position:relative;
+  }
+  .touch-tip{
+    position:absolute; top:14%; left:18%; font-size:1rem; color:#ad794e; transform:rotate(-12deg);
+    opacity:.9
+  }
+  .cookie{width:66%; filter:drop-shadow(0 14px 22px rgba(0,0,0,.25)); cursor:pointer}
+  .cookie:active{transform:scale(.98)}
+  .cta{
+    display:inline-block; margin-top:10px; padding:10px 16px; border-radius:999px;
+    background:linear-gradient(180deg, var(--accent), var(--accent-deep)); color:#fff; font-weight:700;
+    box-shadow:0 6px 0 #ce5c14; user-select:none; cursor:pointer
+  }
+  .cta:active{transform:translateY(2px); box-shadow:0 4px 0 #ce5c14}
+
+  /* ===== 결과 카드 ===== */
   .card{
-    width:min(80vw,300px); height:450px; border-radius:16px; position:relative; cursor:pointer;
-    transform-style:preserve-3d; transition:transform .8s cubic-bezier(.2,.7,.2,1);
+    background:var(--card); border:1px solid #f2e5cf; border-radius:16px; padding:16px;
+    box-shadow:0 10px 32px rgba(0,0,0,.12);
   }
-  .card.flipped{transform:rotateY(180deg)}
-  @media (prefers-reduced-motion: reduce){ .card{ transition:none } }
-  .face{position:absolute; inset:0; backface-visibility:hidden; border-radius:16px; overflow:hidden;
-    display:flex; align-items:center; justify-content:center; box-shadow:0 16px 40px rgba(0,0,0,.45)}
-  .front{
-    background:
-      radial-gradient(400px 200px at 50% 0%, rgba(124,92,255,.25), transparent 60%),
-      linear-gradient(135deg, #1f1b2e, #141420);
-    border:1px solid rgba(124,92,255,.4);
+  .result-msg{font-size:1.05rem; line-height:1.6; margin:0}
+  .scores{margin-top:14px; display:grid; gap:10px}
+  .row{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px}
+  .label{font-weight:700}
+  .bar{height:12px; border-radius:999px; background:#fde7d5; position:relative; overflow:hidden}
+  .bar>i{
+    position:absolute; inset:0; width:var(--w,0%); background:linear-gradient(90deg,#ff9f5c,#ff7a2a);
+    border-radius:999px; transition:width .8s cubic-bezier(.2,.8,.2,1);
   }
-  .back{
-    transform:rotateY(180deg);
-    background:
-      radial-gradient(500px 220px at 50% -5%, rgba(124,92,255,.22), transparent 60%),
-      linear-gradient(160deg, #111318, #171924);
-    border:1px solid rgba(255,255,255,.08);
-    padding:16px;
-  }
-  .sigil{
-    width:70%; aspect-ratio:1/1; border-radius:50%; border:2px dashed rgba(255,255,255,.14);
-    display:flex; align-items:center; justify-content:center; color:#fff; font-size:3rem; user-select:none;
-    background: radial-gradient(60% 60% at 50% 45%, rgba(255,255,255,.06), transparent);
-  }
-  .brand{position:absolute; inset:auto 14px 14px auto; font-size:.8rem; color:var(--muted);
-    background:rgba(0,0,0,.25); padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08)}
-  .name{font-weight:700; text-align:center; margin:6px 0 8px; letter-spacing:.02em}
-  .dir{font-size:.85rem; color:var(--muted); text-align:center; margin-bottom:8px}
-  .keywords{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:6px 0 10px}
-  .pill{font-size:.85rem; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08)}
-  .advice{font-size:1rem; line-height:1.55; background:rgba(124,92,255,.09);
-    border:1px solid rgba(124,92,255,.35); padding:12px 14px; border-radius:12px; text-align:center}
-  .advice.good{background:rgba(88,214,141,.08); border-color:rgba(88,214,141,.4)}
-  .advice.bad{background:rgba(255,118,117,.08); border-color:rgba(255,118,117,.45)}
-  .btns{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+  .val{font-weight:800; color:#d8611c}
+
+  .kw{margin-top:14px}
+  .kw h3{margin:0 0 8px; font-size:1rem}
+  .kwgrid{display:grid; gap:10px}
+  .krow{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; padding:10px; border-radius:12px; background:#fff}
+  .kico{font-size:1.15rem}
+  .klabel{color:#7a5935}
+  .btns{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
   button{
-    all:unset; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.18);
-    background:rgba(255,255,255,.06); cursor:pointer; font-weight:600; letter-spacing:.01em; text-align:center
+    all:unset; cursor:pointer; padding:10px 14px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; font-weight:700;
   }
-  button:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; border-color:transparent }
-  button.primary{background:linear-gradient(180deg, #7c5cff, #5f45e6); border-color:#7c5cff}
-  button.ghost[aria-selected="true"]{outline:2px solid var(--accent)}
-  .panel{
-    background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px
-  }
-  .panel h3{margin:0 0 8px; font-size:1rem}
-  .list{display:grid; gap:8px}
-  .line{font-size:.98rem; line-height:1.55; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); padding:10px 12px; border-radius:10px}
-  footer{margin-top:12px; text-align:center; color:var(--muted); font-size:.85rem}
-  .row{display:grid; gap:10px}
-  @media(min-width:560px){ .row{grid-template-columns:1fr 1fr} }
-  .history{display:grid; gap:8px; max-height:210px; overflow:auto; padding-right:4px}
-  .hist-item{display:flex; align-items:center; gap:8px; font-size:.92rem; padding:8px 10px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:10px}
-  .dot{width:8px; height:8px; border-radius:50%}
-  .dot.u{background:var(--good)} .dot.r{background:var(--bad)}
-  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:.85rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); padding:.1rem .4rem; border-radius:6px}
-  /* 오류 오버레이 */
+  button.primary{background:linear-gradient(180deg,#ff9f5c,#ff7a2a); color:#fff; border-color:#ff8a42}
+
+  /* ===== 오류 오버레이 ===== */
   #errOverlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); color:#fff; z-index:9999; padding:16px; overflow:auto}
   #errOverlay pre{white-space:pre-wrap; word-break:break-word; background:rgba(255,255,255,.08); padding:12px; border-radius:8px}
 </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>오늘의 타로</h1>
-      <div class="date" id="dateText" aria-live="polite"></div>
-    </header>
+  <!-- 공통 흰색 헤더 -->
+  <header class="site-header">
+    <div class="logo">
+      <img src="https://api.multicampus.com/ssf/v1/resource/public/images/FILBS202506207041267" alt="multicampus logo">
+    </div>
+    <h1>포춘쿠키</h1>
+    <div class="today" id="today"></div>
+  </header>
 
-    <div class="wrap" role="region" aria-label="타로 카드 영역">
-      <div class="grid">
-        <!-- 카드 -->
-        <div>
-          <div class="cardbox">
-            <div id="card" class="card" role="button" tabindex="0" aria-pressed="false" aria-label="카드 뒤집기 (Enter/Space)">
-              <div class="face front" title="카드를 탭해 뒤집기">
-                <div class="sigil">🔮</div>
-                <div class="brand" aria-hidden="true">TAROT · RANDOM</div>
-              </div>
-              <div class="face back" aria-live="polite">
-                <div style="width:100%;">
-                  <div class="name" id="cardName">카드를 뽑아보세요</div>
-                  <div class="dir" id="cardDir">정/역방향</div>
-                  <div class="keywords" id="keywords"></div>
-                  <div class="advice" id="advice">여기에 메시지가 표시됩니다.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="btns" style="margin-top:10px">
-            <button id="drawBtn" class="primary" title="새 카드를 뽑습니다 (단축키: D)">카드 뽑기</button>
-            <button id="flipBtn" title="카드를 뒤집습니다 (단축키: F)">카드 뒤집기</button>
-            <button id="shareBtn" title="텍스트로 공유하거나 복사합니다">공유</button>
-            <button id="linkBtn" title="같은 결과를 열 수 있는 링크 생성">링크</button>
-            <button id="resetBtn" title="화면 초기화">초기화</button>
-          </div>
-          <div class="date" style="margin-top:8px">단축키: <span class="kbd">D</span> 뽑기 · <span class="kbd">F</span> 뒤집기 · <span class="kbd">L</span> 링크</div>
+  <div class="container">
+    <!-- 인트로 화면 -->
+    <section id="viewIntro" class="view intro active" aria-label="포춘쿠키 인트로">
+      <div>
+        <h2 id="introTitle">행운님, 포춘쿠키를 열면</h2>
+        <p>자세한 오늘의 운세를 볼 수 있어요.</p>
+      </div>
+
+      <div class="plate" aria-hidden="true">
+        <span class="touch-tip">Touch!</span>
+        <!-- 쿠키 SVG -->
+        <svg class="cookie" id="cookieBtn" viewBox="0 0 512 320" role="button" tabindex="0" aria-label="포춘쿠키 열기">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1">
+              <stop offset="0" stop-color="#f7b06b"/>
+              <stop offset="1" stop-color="#e08a41"/>
+            </linearGradient>
+            <radialGradient id="shine" cx="30%" cy="20%" r="60%">
+              <stop offset="0" stop-color="#fff7" />
+              <stop offset="1" stop-color="#0000"/>
+            </radialGradient>
+          </defs>
+          <path d="M280 60c-46 8-88 44-112 82-26 42-32 86-20 106 10 17 40 30 74 10 30-18 56-64 70-118 10-39 7-77-12-80z" fill="url(#g1)"/>
+          <path d="M232 62c49-14 115 3 154 36 40 33 58 83 48 109-9 24-48 37-86 18-33-16-60-55-78-105-13-36-20-59-38-58z" fill="url(#g1)"/>
+          <ellipse cx="250" cy="110" rx="120" ry="80" fill="url(#shine)"/>
+        </svg>
+      </div>
+
+      <div class="cta" id="cookieCta">터치해 주세요!</div>
+    </section>
+
+    <!-- 결과 화면 -->
+    <section id="viewResult" class="view" aria-label="운세 결과">
+      <div class="card" id="cardResult">
+        <p class="result-msg" id="fortuneText">결과를 불러오는 중…</p>
+
+        <div class="scores" id="scores">
+          <!-- JS에서 행 삽입 -->
         </div>
 
-        <!-- 우측 패널 -->
-        <div class="row">
-          <div>
-            <div class="btns" role="tablist" aria-label="분야 선택">
-              <button class="ghost" id="tabGeneral" role="tab" aria-selected="true">전체</button>
-              <button class="ghost" id="tabLove" role="tab" aria-selected="false">사랑</button>
-              <button class="ghost" id="tabWork" role="tab" aria-selected="false">일</button>
-              <button class="ghost" id="tabMoney" role="tab" aria-selected="false">금전</button>
-            </div>
-            <div class="panel" id="panel">
-              <h3 id="panelTitle">오늘의 핵심 메시지</h3>
-              <div class="list">
-                <div class="line" id="line1">카드를 뽑으면 분야별 해석이 표시됩니다.</div>
-                <div class="line" id="line2"></div>
-                <div class="line" id="line3"></div>
-              </div>
-            </div>
+        <div class="kw">
+          <h3>행운 키워드</h3>
+          <div class="kwgrid" id="kwGrid">
+            <!-- JS에서 삽입 -->
           </div>
-          <div>
-            <div class="panel">
-              <h3 style="margin-bottom:8px">최근 뽑은 카드</h3>
-              <div class="history" id="history" aria-live="polite"></div>
-              <div class="date" style="margin-top:6px">최대 10개 저장 · 기기 로컬에만 보관됩니다</div>
-            </div>
-          </div>
+        </div>
+
+        <div class="btns">
+          <button id="againBtn" class="primary">다시 열기</button>
+          <button id="shareBtn">공유/복사</button>
+          <button id="linkBtn">링크</button>
         </div>
       </div>
-    </div>
-
-    <footer>무제한 랜덤 · 공유/링크/히스토리 지원 · <span id="ver">v2</span></footer>
+    </section>
   </div>
+
+  <footer>© multicampus arcade</footer>
 
   <!-- 오류 오버레이 -->
   <div id="errOverlay" role="alert" aria-live="assertive">
     <h3>스크립트 오류가 발생했습니다</h3>
-    <p>이 화면이 계속 보이면 복사/붙여넣기 과정에서 빠진 부분이 없는지 확인해 주세요.</p>
+    <p>복사/붙여넣기 과정에서 빠진 부분이 없는지 확인해 주세요.</p>
     <pre id="errText"></pre>
   </div>
 
@@ -188,405 +207,186 @@
   window.addEventListener('unhandledrejection', (e)=> show('Promise 오류: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason))));
 })();
 
-/**************** 타로 데이터(메이저 22장 · 리라이트 버전) ****************/
-const MAJOR = [
-  { n:"0. 바보 (The Fool) 🃏",
-    u:["새출발","즉흥","자유"], r:["무모","불안정","방황"],
-    au:"새로운 시작 앞에 서 있습니다. 작은 모험이 큰 기회를 불러올 거예요.",
-    ar:"준비되지 않은 선택은 불안정으로 이어질 수 있습니다. 잠시 멈추고 발판을 다져보세요." },
-  { n:"I. 마법사 (The Magician) ✨",
-    u:["의지","창조","커뮤니케이션"], r:["속임수","산만","집중력저하"],
-    au:"지금은 말과 행동이 잘 맞아떨어집니다. 자신감을 가지고 움직이세요.",
-    ar:"욕심이 많아 산만해질 수 있어요. 중요한 한 가지에 집중하는 게 좋습니다." },
-  { n:"II. 여사제 (The High Priestess) 🌙",
-    u:["직관","비밀","내면"], r:["혼란","억압된감정","피상"],
-    au:"직관과 감각이 빛나는 때입니다. 마음속 목소리에 귀 기울여 보세요.",
-    ar:"겉모습에만 집착하지 말고 깊이 들여다보세요. 감정이 억눌려 있을 수 있습니다." },
-  { n:"III. 여황제 (The Empress) 🌿",
-    u:["풍요","돌봄","창의"], r:["과잉","지나친의존","정체"],
-    au:"풍요와 따뜻한 돌봄이 당신을 감싸고 있습니다. 창의력도 빛을 발할 거예요.",
-    ar:"과한 배려는 오히려 지치게 만들 수 있어요. 자신을 위한 선도 필요합니다." },
-  { n:"IV. 황제 (The Emperor) 🛡️",
-    u:["질서","통제","권위"], r:["완고","경직","권위충돌"],
-    au:"질서와 규율이 힘이 됩니다. 계획과 원칙을 세우면 일이 풀릴 거예요.",
-    ar:"완고함은 갈등을 부릅니다. 유연하게 타협하는 태도가 필요합니다." },
-  { n:"V. 교황 (The Hierophant) 📖",
-    u:["전통","멘토","학습"], r:["형식주의","고집","폐쇄성"],
-    au:"경험 많은 사람이나 전통적인 방법에서 배움의 기회를 얻을 수 있습니다.",
-    ar:"관습이 항상 정답은 아닙니다. 본질적인 목적을 먼저 살펴보세요." },
-  { n:"VI. 연인 (The Lovers) ❤️",
-    u:["선택","유대","조화"], r:["우유부단","불협","유혹"],
-    au:"관계 속에서 조화와 유대가 깊어집니다. 진심이 담긴 선택이 좋은 결과를 만듭니다.",
-    ar:"감정과 현실이 충돌할 수 있어요. 경계와 기준을 세우는 게 필요합니다." },
-  { n:"VII. 전차 (The Chariot) 🏁",
-    u:["돌파","속도","승리"], r:["폭주","산만","통제불능"],
-    au:"집중력과 추진력이 강해집니다. 속도를 유지하며 앞으로 나아가세요.",
-    ar:"너무 빠른 질주는 방향을 잃을 수 있습니다. 잠시 속도를 조절해 보세요." },
-  { n:"VIII. 힘 (Strength) 🦁",
-    u:["용기","인내","자기조절"], r:["불안","과민","의욕저하"],
-    au:"부드럽지만 단단한 인내심이 힘이 됩니다. 자신을 믿으세요.",
-    ar:"억지로 버티기보다 회복의 시간을 갖는 게 더 큰 용기를 줍니다." },
-  { n:"IX. 은둔자 (The Hermit) 🕯️",
-    u:["성찰","연구","집중"], r:["고립","지연","폐쇄"],
-    au:"혼자만의 깊은 성찰이 답을 보여줄 수 있습니다. 고요 속에서 길을 찾으세요.",
-    ar:"고립은 오히려 발목을 잡습니다. 도움을 청하는 것도 용기입니다." },
-  { n:"X. 운명의 수레바퀴 (Wheel of Fortune) 🎡",
-    u:["전환","행운","순환"], r:["변덕","통제불가","타이밍악"],
-    au:"예상치 못한 전환이 찾아옵니다. 흐름을 타는 것이 지혜입니다.",
-    ar:"지금은 큰 도박보다 관망이 유리합니다. 타이밍을 기다리세요." },
-  { n:"XI. 정의 (Justice) ⚖️",
-    u:["공정","계약","균형"], r:["불균형","불이익","편향"],
-    au:"공정함이 중심이 되는 순간입니다. 사실과 규칙에 따라 판단하세요.",
-    ar:"편향된 시각은 손해로 이어질 수 있습니다. 다시 자료를 검토해 보세요." },
-  { n:"XII. 매달린 사람 (The Hanged Man) 🪢",
-    u:["시각전환","희생","멈춤"], r:["지체","고집","비효율"],
-    au:"잠시 멈추는 시간이 오히려 도약의 발판이 됩니다. 시각을 바꿔보세요.",
-    ar:"억지로 매달리기보다 내려놓는 것이 효율적일 때도 있습니다." },
-  { n:"XIII. 죽음 (Death) 🦋",
-    u:["종결","정리","재생"], r:["집착","미루기","정체"],
-    au:"오래된 것을 정리할 때, 새로운 길이 열립니다. 끝맺음이 곧 시작입니다.",
-    ar:"붙잡고 있는 집착을 내려놓아야 다시 흐름이 돌아옵니다." },
-  { n:"XIV. 절제 (Temperance) 💧",
-    u:["조율","균형","치유"], r:["과유불급","기복","실수"],
-    au:"조율과 균형이 성과를 만듭니다. 무리하지 말고 조화롭게 나아가세요.",
-    ar:"과유불급은 실수를 부릅니다. 속도를 줄이고 미세하게 조정해 보세요." },
-  { n:"XV. 악마 (The Devil) 🔗",
-    u:["집착","유혹","계약"], r:["해방","자각","절제"],
-    au:"달콤한 유혹엔 대가가 있습니다. 조건을 꼼꼼히 살펴보세요.",
-    ar:"올가미를 알아차린 순간 이미 반쯤 벗어난 것입니다. 해방을 선택하세요." },
-  { n:"XVI. 탑 (The Tower) ⚡",
-    u:["충격","붕괴","각성"], r:["피해감소","경고","복구"],
-    au:"예상치 못한 변화가 일어날 수 있습니다. 그러나 진짜 문제를 드러내는 과정입니다.",
-    ar:"작은 균열일수록 회복이 빠릅니다. 경고를 기회로 삼으세요." },
-  { n:"XVII. 별 (The Star) 🌟",
-    u:["희망","영감","회복"], r:["의심","현실회피","지연"],
-    au:"작은 희망이 길을 비춥니다. 믿음을 키우면 영감이 커집니다.",
-    ar:"희망만으론 부족합니다. 지금 필요한 건 작은 실행입니다." },
-  { n:"XVIII. 달 (The Moon) 🌘",
-    u:["감정","직감","꿈"], r:["오해","불안","루머"],
-    au:"감정과 직관이 예민해집니다. 마음속 이야기를 기록해 보세요.",
-    ar:"확인되지 않은 소문이나 불안에 흔들리지 마세요. 사실을 먼저 점검하세요." },
-  { n:"XIX. 태양 (The Sun) ☀️",
-    u:["성취","자신감","명료"], r:["지연","과신","소진"],
-    au:"성취와 자신감이 빛나는 순간입니다. 적극적으로 추진해도 좋습니다.",
-    ar:"지나친 자신감은 소진을 부를 수 있습니다. 컨디션 관리에 집중하세요." },
-  { n:"XX. 심판 (Judgement) 🎺",
-    u:["부활","평가","결정"], r:["후회","미완","연기"],
-    au:"과거의 경험이 새로운 결정을 도와줍니다. 마무리할 용기를 내세요.",
-    ar:"아직 판단하기 이른 때일 수 있습니다. 자료와 시간을 더 모아보세요." },
-  { n:"XXI. 세계 (The World) 🌍",
-    u:["완성","통합","여행"], r:["미완성","마무리지연","흩어짐"],
-    au:"완성의 기쁨이 찾아옵니다. 마무리 뒤엔 새로운 여정이 열릴 거예요.",
-    ar:"마무리가 미뤄지고 있습니다. 빠진 부분이 없는지 점검하세요." },
-];
-
-/**************** 유틸 ****************/
-const $ = sel => document.querySelector(sel);
-const dateText = $("#dateText");
-const isReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* 날짜 포맷 폴백 */
-function fmtDateHuman(){
+/* ===== 날짜/유틸 ===== */
+const $ = (s)=>document.querySelector(s);
+const todayEl = $("#today");
+function fmtDate(){
   try{
-    if (Intl && Intl.DateTimeFormat) {
-      const fmt = new Intl.DateTimeFormat("ko-KR",{dateStyle:"full"});
-      return fmt.format(new Date()).replace(/\s*역\s*$/,"");
-    }
-  }catch(_){}
-  const d = new Date();
-  return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0");
+    const f = new Intl.DateTimeFormat('ko-KR',{dateStyle:'medium'});
+    return f.format(new Date());
+  }catch(_){
+    const d=new Date(); return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`;
+  }
 }
-function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+todayEl.textContent = fmtDate();
 
-// LCG 기반 시드 난수 (링크 공유용 재현 가능) — 2**32 대신 정수 상수 사용
-function LCG(seed){
-  let s = (seed>>>0);
-  return function(){
-    s = (s*1664525 + 1013904223)>>>0;
-    return s / 4294967296; // 2**32
-  };
-}
-function parseSeed(){
-  try{
-    const u = new URL(location.href);
-    const s = u.searchParams.get('s');
-    if (s===null) return null;
-    const n = Number(s);
-    return Number.isFinite(n) ? n : null;
-  }catch(_){ return null; }
-}
-function makeSeedLink(res){
-  const u=new URL(location.href);
-  const seed = (res.seed||Date.now())>>>0;
-  u.searchParams.set('s', String(seed));
-  return u.toString();
-}
+/* ===== 난수 (시드 링크 지원) ===== */
+function LCG(seed){ let s=(seed>>>0); return ()=> ((s = (s*1664525 + 1013904223)>>>0) / 4294967296); }
+function parseSeed(){ try{ const u=new URL(location.href); const s=u.searchParams.get('s'); if(s===null) return null; const n=Number(s); return Number.isFinite(n)? n:null; }catch(_){ return null } }
+function makeSeedLink(seed){ const u=new URL(location.href); u.searchParams.set('s', String(seed>>>0)); return u.toString(); }
 
-/**************** 엘리먼트 ****************/
-const cardEl   = $("#card");
-const nameEl   = $("#cardName");
-const dirEl    = $("#cardDir");
-const kwEl     = $("#keywords");
-const advEl    = $("#advice");
-const drawBtn  = $("#drawBtn");
-const flipBtn  = $("#flipBtn");
+/* ===== 데이터 풀 ===== */
+const MSG = {
+  love: [
+    "오늘은 사랑에 온기가 더해지는 날. 마음을 솔직히 건네 보세요.",
+    "감정의 속도를 맞추면 관계가 한층 가까워집니다.",
+    "작은 친절 하나가 분위기를 바꿉니다."
+  ],
+  work: [
+    "핵심 한 가지를 완주하면 성과가 따라옵니다.",
+    "협업의 운이 있어요. 도움을 주고받아 보세요.",
+    "데이터와 근거로 설득할 때 성과가 큽니다."
+  ],
+  money: [
+    "지출을 계획하면 수익이 지켜집니다.",
+    "충동구매를 피하고 비교·보류 전략이 유리합니다.",
+    "고정비 점검이 오늘의 효자."
+  ],
+  study: [
+    "짧고 자주—분산 학습이 효율을 냅니다.",
+    "개념 정리와 복습에 초점을 두면 성과가 커집니다.",
+    "오늘 외운 것은 오늘 점검!"
+  ],
+  health: [
+    "컨디션 관리에 ‘수면’이 열쇠입니다.",
+    "가벼운 스트레칭과 수분 보충으로 리듬을 회복하세요.",
+    "무리는 금물. 미세한 회복이 곧 체력입니다."
+  ],
+  general: [
+    "작은 시작이 큰 변화를 부릅니다. 오늘의 나를 응원하세요.",
+    "행운은 준비된 곳을 좋아합니다. 계획을 한 줄 적어봅시다.",
+    "타이밍이 좋습니다. 가볍게 시도해도 좋아요."
+  ]
+};
+const DIRECTIONS = ["동쪽","서쪽","남쪽","북쪽","동남","서남","동북","서북"];
+const COLORS = ["피어나는 핑크","호박 오렌지","순한 베이지","바나나 옐로","숲 그린","하늘 블루","보라 바이올렛","차분한 네이비"];
+const FOODS = ["순두부찌개","김치볶음밥","파스타","비빔국수","불고기","연어초밥","우동","치킨","팥빙수","라떼"];
+const ICON = {num:"📙", dir:"🧭", col:"🎨", food:"🍲"};
+
+/* ===== 요소 ===== */
+const viewIntro = $("#viewIntro");
+const viewResult = $("#viewResult");
+const cookieBtn = $("#cookieBtn");
+const cookieCta = $("#cookieCta");
+const againBtn  = $("#againBtn");
+const fortuneText = $("#fortuneText");
+const scoresEl = $("#scores");
+const kwGrid = $("#kwGrid");
 const shareBtn = $("#shareBtn");
-const linkBtn  = $("#linkBtn");
-const resetBtn = $("#resetBtn");
+const linkBtn = $("#linkBtn");
 
-const tabGeneral = $("#tabGeneral");
-const tabLove = $("#tabLove");
-const tabWork = $("#tabWork");
-const tabMoney = $("#tabMoney");
-const panelTitle = $("#panelTitle");
-const line1 = $("#line1");
-const line2 = $("#line2");
-const line3 = $("#line3");
-const historyEl = $("#history");
-
-/**************** 상태 ****************/
-let currentRes = null; // {idx, upright, ts, seed}
-let currentTab = "general";
-const HISTORY_KEY = 'tarotHistoryV2';
-
-/**************** 렌더링 ****************/
-function renderResult(res){
-  if(!res){
-    nameEl.textContent = "카드를 뽑아보세요";
-    dirEl.textContent = "정/역방향";
-    kwEl.innerHTML = "";
-    advEl.textContent = "여기에 메시지가 표시됩니다.";
-    advEl.className = "advice";
-    renderDomainPanel(null);
-    return;
-  }
-  const card = MAJOR[res.idx];
-  const isUpright = res.upright;
-  nameEl.textContent = card.n;
-  dirEl.textContent = isUpright ? "정방향" : "역방향";
-  kwEl.innerHTML = "";
-  (isUpright?card.u:card.r).forEach(k=>{
-    const span=document.createElement("span"); span.className="pill"; span.textContent=k; kwEl.appendChild(span);
-  });
-  advEl.textContent = isUpright ? card.au : card.ar;
-  advEl.className = "advice " + (isUpright ? "good" : (res.idx===15||res.idx===16 ? "bad" : ""));
-  renderDomainPanel(res);
-}
-
-/* 자연스러운 톤 패널 */
-function renderDomainPanel(res){
-  if(!res){
-    panelTitle.textContent = "오늘의 핵심 메시지";
-    line1.textContent = "카드를 뽑으면 분야별 해석이 표시됩니다.";
-    line2.textContent = "";
-    line3.textContent = "";
-    return;
-  }
-
-  const card = MAJOR[res.idx];
-  const isUpright = res.upright;
-  const kws = (isUpright ? card.u : card.r);
-
-  if(currentTab === "general"){
-    panelTitle.textContent = "오늘의 핵심 메시지";
-    line1.textContent = `“${isUpright ? card.au : card.ar}”`;
-    line2.textContent = `연관된 키워드: ${kws.join(", ")}`;
-    line3.textContent = `당신이 뽑은 카드는 ${card.n}이며, 이번에는 ${isUpright ? "정방향" : "역방향"}으로 나타났습니다.`;
-  } else if(currentTab === "love"){
-    panelTitle.textContent = "사랑 운세";
-    line1.textContent = domainAdvice(card, isUpright, "love");
-    line2.textContent = "오늘의 포인트: 대화의 ‘질’에 집중하고, 경계와 기대치를 함께 맞춰보세요.";
-    line3.textContent = "팁: 작은 친절이나 짧은 메시지로 분위기를 부드럽게 여세요.";
-  } else if(currentTab === "work"){
-    panelTitle.textContent = "일(커리어) 운세";
-    line1.textContent = domainAdvice(card, isUpright, "work");
-    line2.textContent = "오늘의 포인트: 한 가지를 끝까지—그리고 데이터로 설득하세요.";
-    line3.textContent = "팁: 마감과 의사결정 시점을 먼저 적어 두면 흐름이 잡힙니다.";
-  } else {
-    panelTitle.textContent = "금전 운세";
-    line1.textContent = domainAdvice(card, isUpright, "money");
-    line2.textContent = "오늘의 포인트: 충동구매를 피하고, 구독·고정비부터 점검하세요.";
-    line3.textContent = "팁: 오늘은 비교·보류·예비비 강화 전략이 유리합니다.";
-  }
-}
-
-/**************** 분야별 해석 ****************/
-const pick = (arr)=> arr[Math.floor(Math.random()*arr.length)];
-function domainAdvice(card, upright, domain){
-  const T = {
-    love:{
-      u:[
-        "감정의 {tone} 흐름. 솔직한 대화가 매력을 높입니다.",
-        "새 인연 또는 관계 회복의 흐름이 보입니다. {tip}",
-        "속도를 맞추면 거리감이 자연스럽게 줄어듭니다."
-      ],
-      r:[
-        "감정 기복 주의. {trap}에 휘둘리지 않도록 경계하세요.",
-        "서두르면 오해가 커집니다. {tip}",
-        "관계의 경계와 역할을 다시 정할 시간이 필요합니다."
-      ],
-      tips:["작은 연락 먼저","대화의 질에 집중","감정 기록하기","기대치 조율하기"],
-      traps:["과도한 기대","확신 없는 밀당","비교 습관","답정너 대화"]
-    },
-    work:{
-      u:[
-        "업무의 {tone} 흐름. 핵심 한 가지를 완주하면 성과가 납니다.",
-        "도움과 멘토 운이 있습니다. {tip}",
-        "타이밍이 좋습니다. 계획을 실행해 보세요."
-      ],
-      r:[
-        "우선순위 혼선 주의. {trap}를 줄이세요.",
-        "속도를 낮추고 정합성을 점검할 때입니다.",
-        "관성대로 가지 말고 프로세스를 재정비하세요."
-      ],
-      tips:["레퍼런스 확보","메모로 흐름 잡기","오늘 1태스크 완주","데드라인 재확인"],
-      traps:["회의 과다","컨텍스트 스위칭","미루기","완벽주의 루프"]
-    },
-    money:{
-      u:[
-        "현금흐름이 {tone}. {tip}에 초점을 맞추면 안정적입니다.",
-        "작은 절약과 수익화 아이디어가 효율을 만듭니다.",
-        "계획적 지출이 수익률을 지켜줍니다."
-      ],
-      r:[
-        "충동소비·과신 주의. {trap}을 피하세요.",
-        "큰 베팅은 보류하고, 현금 쿠션을 먼저 확보하세요.",
-        "조건 확인 없는 서명 금지—조항을 재검토하세요!"
-      ],
-      tips:["지출 카테고리 제한","구독 점검","가격 비교","예비비 우선"],
-      traps:["무이자에 방심","할인 유혹","정보 비대칭","수익률 과대평가"]
-    }
+/* ===== 로직 ===== */
+function randGen(seed){
+  const r = seed!=null ? LCG(seed) : Math.random;
+  const pick = (arr)=> arr[Math.floor(r()*arr.length)];
+  const n100 = ()=> Math.floor(60 + r()*40); // 60~100
+  const scores = {
+    금전: n100(),
+    직장: n100(),
+    애정: n100(),
+    학업: n100(),
+    건강: n100()
   };
-  const tone = upright ? pick(["맑고 경쾌한","안정적인","확장적인"]) : pick(["울퉁불퉁한","흐릿한","변덕스러운"]);
-  const kws = upright ? card.u : card.r;
-  const tpl = upright ? pick(T[domain].u) : pick(T[domain].r);
-  const tip = pick(T[domain].tips);
-  const trap = pick(T[domain].traps);
-  return tpl.replace("{tone}", kws[0]||"흐름").replace("{tip}", tip).replace("{trap}", trap);
+  // 최상위 카테고리
+  const top = Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+  let domain = "general";
+  if(top==="애정") domain="love";
+  else if(top==="직장") domain="work";
+  else if(top==="금전") domain="money";
+  else if(top==="학업") domain="study";
+  else if(top==="건강") domain="health";
+
+  const message = pick(MSG[domain]);
+  const lucky = {
+    num: Math.floor(1 + r()*99),
+    dir: pick(DIRECTIONS),
+    col: pick(COLORS),
+    food: pick(FOODS)
+  };
+  return {scores, message, lucky, domain};
 }
 
-/**************** 히스토리 ****************/
-function loadHistory(){
-  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); }catch{ return [] }
+function renderScores(scores){
+  scoresEl.innerHTML = "";
+  for(const [label,val] of Object.entries(scores)){
+    const row = document.createElement('div'); row.className="row";
+    const l = document.createElement('div'); l.className="label"; l.textContent=label;
+    const bar = document.createElement('div'); bar.className="bar";
+    const fill = document.createElement('i'); fill.style.setProperty('--w', val+'%'); bar.appendChild(fill);
+    const v = document.createElement('div'); v.className="val"; v.textContent = `${val}점`;
+    row.append(l, bar, v); scoresEl.appendChild(row);
+    // 애니메이션 지연
+    setTimeout(()=>{ fill.style.width = val+'%'; }, 30);
+  }
 }
-function saveHistory(list){
-  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0,10))); }catch{}
-}
-function pushHistory(res){
-  const card = MAJOR[res.idx];
-  const entry = { t: res.ts, n: card.n, u: res.upright, s: res.seed||null };
-  const list = [entry, ...loadHistory()].slice(0,10);
-  saveHistory(list); renderHistory(list);
-}
-function renderHistory(list=loadHistory()){
-  historyEl.innerHTML = '';
-  if(!list.length){ historyEl.innerHTML = '<div class="date">기록 없음</div>'; return; }
-  list.forEach(e=>{
-    const div = document.createElement('div'); div.className='hist-item';
-    const dot = document.createElement('div'); dot.className = 'dot '+(e.u?'u':'r'); div.appendChild(dot);
-    const txt = document.createElement('div');
-    const d = new Date(e.t);
-    try{
-      const fmtTxt = new Intl.DateTimeFormat('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(d);
-      txt.textContent = `${fmtTxt} · ${e.n} · ${e.u?'정':'역'}`;
-    }catch(_){
-      txt.textContent = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} · ${e.n} · ${e.u?'정':'역'}`;
-    }
-    div.appendChild(txt);
-    div.addEventListener('click',()=>{
-      if(e.s!=null){ location.href = setSeedInUrl(e.s); }
-      else { currentRes = { idx: nameToIndex(e.n), upright:e.u, ts: Date.now() }; renderResult(currentRes); flipCard(true); }
-    });
-    historyEl.appendChild(div);
+function renderKeywords(kw){
+  kwGrid.innerHTML = "";
+  const rows = [
+    {ico:ICON.num, label:"숫자", value:String(kw.num)},
+    {ico:ICON.dir, label:"방향", value:kw.dir},
+    {ico:ICON.col, label:"컬러", value:kw.col},
+    {ico:ICON.food,label:"음식", value:kw.food},
+  ];
+  rows.forEach(r=>{
+    const div = document.createElement('div'); div.className='krow';
+    const i = document.createElement('div'); i.className='kico'; i.textContent=r.ico;
+    const l = document.createElement('div'); l.className='klabel'; l.textContent=r.label;
+    const v = document.createElement('div'); v.style.fontWeight='800'; v.textContent=r.value;
+    div.append(i,l,v); kwGrid.appendChild(div);
   });
 }
-function nameToIndex(name){ return clamp(MAJOR.findIndex(c=>c.n===name),0,MAJOR.length-1) }
-function setSeedInUrl(seed){ const u=new URL(location.href); u.searchParams.set('s', String(seed>>>0)); return u.toString(); }
 
-/**************** 동작 ****************/
-function flipCard(toBack=true){
-  const flipped = cardEl.classList.contains("flipped");
-  if(toBack && !flipped) cardEl.classList.add("flipped");
-  if(!toBack && flipped) cardEl.classList.remove("flipped");
-}
-function drawRandom(){
-  const seedParam = parseSeed();
-  if(seedParam!=null){
-    const rnd = LCG(seedParam);
-    const idx = Math.floor(rnd()*MAJOR.length);
-    const upright = rnd() < 0.5;
-    return { idx, upright, ts: Date.now(), seed: seedParam };
-  }
-  const idx = Math.floor(Math.random()*MAJOR.length);
-  const upright = Math.random() < 0.5;
-  return { idx, upright, ts: Date.now(), seed: Date.now() };
-}
-function applyDraw({autoFlipDelay=250}={}){
-  const res = drawRandom();
-  currentRes = res;
-  renderResult(res);
+function showResult(seed){
+  const {scores, message, lucky} = randGen(seed);
+  fortuneText.textContent = message;
+  renderScores(scores);
+  renderKeywords(lucky);
+  viewIntro.classList.remove('active');
+  viewResult.classList.add('active');
+  // 진동
   if(navigator.vibrate) try{ navigator.vibrate(8); }catch(_){}
-  if(!isReduced) setTimeout(()=>flipCard(true), autoFlipDelay);
-  pushHistory(res);
-}
-function setTab(tab){
-  currentTab = tab;
-  [tabGeneral,tabLove,tabWork,tabMoney].forEach(b=>b.setAttribute("aria-selected","false"));
-  ({"general":tabGeneral,"love":tabLove,"work":tabWork,"money":tabMoney}[tab]).setAttribute("aria-selected","true");
-  renderDomainPanel(currentRes);
 }
 
-/**************** 이벤트 ****************/
-drawBtn.addEventListener("click", ()=>applyDraw({autoFlipDelay:250}));
-flipBtn.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
-cardEl.addEventListener("click", ()=> cardEl.classList.toggle("flipped"));
-cardEl.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); cardEl.classList.toggle('flipped'); }});
-resetBtn.addEventListener("click", ()=>{
-  currentRes = null; renderResult(null); flipCard(false);
+/* ===== 이벤트 ===== */
+function openCookie(){
+  const seed = parseSeed() ?? (Date.now()>>>0);
+  showResult(seed);
+}
+cookieBtn.addEventListener('click', openCookie);
+cookieBtn.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openCookie(); }});
+cookieCta.addEventListener('click', openCookie);
+againBtn.addEventListener('click', ()=>{
+  const seed = Date.now()>>>0;
+  const u=new URL(location.href); u.searchParams.set('s', String(seed)); history.replaceState(null,'',u);
+  showResult(seed);
 });
-shareBtn.addEventListener("click", async ()=>{
-  if(!currentRes){ alert("먼저 카드를 뽑아주세요!"); return; }
-  const c = MAJOR[currentRes.idx];
-  const dir = currentRes.upright ? "정방향" : "역방향";
-  const kws = (currentRes.upright ? c.u : c.r).join(", ");
-  const msg = `🔮 오늘의 타로 (${fmtDateHuman()})\n카드: ${c.n} · ${dir}\n키워드: ${kws}\n핵심: ${currentRes.upright ? c.au : c.ar}`;
+
+/* 공유/링크 */
+shareBtn.addEventListener('click', async ()=>{
+  const text = `🍪 오늘의 포춘쿠키 (${fmtDate()})
+- ${fortuneText.textContent}
+- 링크: ${location.href}`;
   try{
-    if (navigator.share) await navigator.share({ title:"오늘의 타로", text:msg });
-    else { await navigator.clipboard.writeText(msg); alert("복사 완료! 원하는 곳에 붙여넣기 하세요."); }
+    if(navigator.share){ await navigator.share({title:"오늘의 포춘쿠키", text}); }
+    else{ await navigator.clipboard.writeText(text); alert("복사 완료! 원하는 곳에 붙여넣기 하세요."); }
   }catch(_){}
 });
 linkBtn.addEventListener('click', async ()=>{
-  if(!currentRes){ alert('먼저 카드를 뽑아주세요!'); return; }
-  const url = makeSeedLink(currentRes);
+  const seed = parseSeed() ?? (Date.now()>>>0);
+  const url = makeSeedLink(seed);
   try{ await navigator.clipboard.writeText(url); alert('링크가 복사되었습니다!'); }
   catch{ prompt('아래 링크를 복사하세요', url); }
 });
 
-// 탭
-[ [tabGeneral,'general'],[tabLove,'love'],[tabWork,'work'],[tabMoney,'money'] ].forEach(([btn,tab])=> btn.addEventListener('click',()=>setTab(tab)) );
-
-// 단축키
-window.addEventListener('keydown',(e)=>{
-  if(e.target && ['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
-  if(e.key==='d' || e.key==='D') applyDraw({autoFlipDelay:200});
-  if(e.key==='f' || e.key==='F') cardEl.classList.toggle('flipped');
-  if(e.key==='l' || e.key==='L') linkBtn.click();
-});
-
-// 초기
-function init(){
-  try{
-    dateText.textContent = fmtDateHuman();
-    renderHistory();
-    // 시드가 있는 경우 자동 뽑기 + 바로 뒤집기
-    if(parseSeed()!=null){ applyDraw({autoFlipDelay: isReduced?0:120}); }
-  }catch(err){
-    const pre = document.getElementById('errText');
-    const ov = document.getElementById('errOverlay');
-    if(pre && ov){ pre.textContent = String(err && err.message ? err.message : err); ov.style.display='block'; }
-  }
-}
-init();
+/* 인트로 제목에 이름/아이디 표시 (옵션) ?n=우성 / ?id=1729 */
+(function(){
+  const u=new URL(location.href);
+  const name = u.searchParams.get('n');
+  const id = u.searchParams.get('id');
+  const title = $("#introTitle");
+  if(name){ title.textContent = `${name}님, 포춘쿠키를 열면`; }
+  else if(id){ title.textContent = `${id}님, 포춘쿠키를 열면`; }
+})();
 </script>
 </body>
 </html>
