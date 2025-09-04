@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>오늘의 운세</title>
+<title>오늘의 선물 운세</title>
 <meta name="theme-color" content="#FFE18A"/>
 
 <style>
@@ -30,6 +30,7 @@
 
   /* 헤더/푸터 */
   .site-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;padding:10px 14px;border-bottom:1px solid #e5e7eb}
+  .site-header .logo{cursor:pointer}
   .site-header .logo img{height:28px;max-width:140px;object-fit:contain}
   .site-header h1{margin:0;flex:1;text-align:center;font-size:1.05rem;color:#111}
   .site-header .today{font-size:.9rem;color:#444}
@@ -41,10 +42,10 @@
   .view.active{display:block}
   @keyframes fadeInUp{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:none}}
 
-  /* 인트로(가운데 정렬) */
+  /* 인트로 */
   .intro{text-align:center; max-width:720px}
   .intro .title{margin:0; font-size:2rem; line-height:1.2}
-  .intro .subtitle{margin:.25rem 0 0; font-size:1.15rem; color:#7b4b22} /* 요청: 아래 줄만 작게 */
+  .intro .subtitle{margin:.25rem 0 0; font-size:1.15rem; color:#7b4b22}
   .plate{margin:24px auto 10px; width:min(70vw,260px); aspect-ratio:1/1; border-radius:24px; background:#fff;
          box-shadow:0 10px 24px rgba(0,0,0,.15); display:flex; align-items:center; justify-content:center}
   .gift{font-size:5rem; cursor:pointer; filter:drop-shadow(0 12px 20px rgba(0,0,0,.2))}
@@ -81,17 +82,17 @@
 <body>
   <!-- 헤더 -->
   <header class="site-header">
-    <div class="logo">
+    <div class="logo" id="homeBtn" role="button" tabindex="0" aria-label="처음 화면으로">
       <img src="https://api.multicampus.com/ssf/v1/resource/public/images/FILBS202506207041267" alt="multicampus logo">
     </div>
-    <h1>오늘의 운세🌟</h1>
+    <h1>오늘의 선물</h1>
     <div class="today" id="today"></div>
   </header>
 
   <div class="container">
     <!-- 인트로 -->
     <section id="viewIntro" class="view intro active" aria-label="인트로">
-      <h2 class="title">🔮</h2>
+      <h2 class="title">학습자님!</h2>
       <p class="subtitle">선물상자를 열면 오늘의 운세가 나와요!</p>
       <div class="plate" aria-hidden="true">
         <div id="giftBtn" class="gift" role="button" tabindex="0" aria-label="선물상자 열기">🎁</div>
@@ -103,14 +104,11 @@
     <section id="viewResult" class="view" aria-label="운세 결과">
       <div class="card">
         <p class="result-msg" id="fortuneText">결과를 불러오는 중…</p>
-
         <div class="scores" id="scores"></div>
-
         <div class="kw">
           <h3>행운 키워드</h3>
           <div class="kwgrid" id="kwGrid"></div>
         </div>
-
         <div class="btns">
           <button id="againBtn" class="primary">다시 열기</button>
           <button id="shareBtn">공유/복사</button>
@@ -124,190 +122,102 @@
 
 <script>
 "use strict";
-
-/* 작은 헬퍼 */
 const $ = s => document.querySelector(s);
 const todayEl = $("#today");
 todayEl.textContent = new Date().toLocaleDateString("ko-KR",{dateStyle:"medium"});
 
-/* 시드 지원(재현 가능한 결과/링크) */
+/* 시드 지원 */
 function LCG(seed){ let s=(seed>>>0); return ()=>((s=(s*1664525+1013904223)>>>0)/4294967296); }
 function parseSeed(){ try{ const u=new URL(location.href); const s=u.searchParams.get('s'); if(s===null) return null; const n=Number(s); return Number.isFinite(n)? n:null; }catch(_){ return null } }
 function setSeedInUrl(seed){ const u=new URL(location.href); u.searchParams.set('s', String(seed>>>0)); history.replaceState(null,'',u); return u.toString(); }
 
-/* 데이터 뱅크(카테고리별 8개씩 = 40개) */
+/* 데이터 */
 const BANK = {
-  love: [
-    "마음의 온도가 올라갑니다. 솔직한 한마디가 분위기를 바꿔요.",
-    "속도를 맞추면 거리감이 자연스레 줄어듭니다.",
-    "작은 배려가 큰 설렘으로 돌아옵니다.",
-    "과거의 오해가 풀리며 관계가 맑아집니다.",
-    "새 인연의 신호가 보입니다. 열린 태도가 행운.",
-    "대화의 질에 집중하면 마음이 통합니다.",
-    "기대치를 조율하면 안정감이 생깁니다.",
-    "작은 약속을 지키는 게 신뢰의 지름길."
-  ],
-  work: [
-    "핵심 한 가지를 끝내면 성과가 큽니다.",
-    "협업의 운이 들어와요. 도움을 주고받아 보세요.",
-    "데이터와 근거가 당신의 편입니다.",
-    "우선순위를 정리하면 속도가 납니다.",
-    "짧은 집중이 큰 진전을 만듭니다.",
-    "마감 시점을 먼저 박으면 흐름이 살아나요.",
-    "레퍼런스 확보가 설득력을 배가합니다.",
-    "컨텍스트 전환을 줄이면 효율이 급상승!"
-  ],
-  money: [
-    "지출 계획이 수익을 지켜줍니다.",
-    "충동구매를 피하면 만족도가 높습니다.",
-    "작은 절약이 큰 여유로 이어집니다.",
-    "가격 비교가 오늘의 필승 전략.",
-    "예비비를 챙기면 마음이 편해집니다.",
-    "구독/고정비 점검이 수익률을 지켜요.",
-    "큰 베팅보단 분산이 안전합니다.",
-    "계획적 결제가 신용도까지 지켜줍니다."
-  ],
-  study: [
-    "분산 학습이 효율을 만듭니다—짧고 자주!",
-    "개념 요약이 이해를 깊게 합니다.",
-    "배운 것을 바로 적용해 보세요.",
-    "루틴을 지키면 속도가 붙습니다.",
-    "멘토의 한마디가 방향을 잡아줍니다.",
-    "복습 체크리스트가 성장을 가속합니다.",
-    "타이머 학습이 집중을 돕습니다.",
-    "오답 노트가 약점을 기회로 바꿔요."
-  ],
-  health: [
-    "수면과 수분 보충이 컨디션을 살립니다.",
-    "가벼운 운동이 활력을 채워줍니다.",
-    "스트레칭으로 몸과 마음을 풀어주세요.",
-    "무리는 금물, 회복이 곧 힘입니다.",
-    "소식과 규칙이 오늘의 키.",
-    "햇빛 10분이 기분을 맑게 합니다.",
-    "자극적 음식보다 담백함이 좋아요.",
-    "호흡을 고르면 긴장이 풀립니다."
-  ],
-  general: [
-    "작은 시작이 큰 변화를 부릅니다.",
-    "타이밍이 좋습니다. 가볍게 시도해 보세요.",
-    "준비된 곳에 행운이 머뭅니다.",
-    "첫 걸음이 방향을 만듭니다.",
-    "꾸준함이 오늘의 치트키.",
-    "마음의 여유가 선택을 밝게 합니다.",
-    "관찰이 인사이트로 이어집니다.",
-    "정리정돈이 생각까지 맑게 해줘요."
-  ]
+  love: ["마음의 온도가 올라갑니다.","속도를 맞추면 거리감이 줄어듭니다.","작은 배려가 큰 설렘으로 돌아옵니다.","과거의 오해가 풀립니다.","새 인연의 신호가 보입니다.","대화의 질에 집중하세요.","기대치를 조율하면 안정감이 생깁니다.","작은 약속이 신뢰를 만듭니다."],
+  work: ["핵심 한 가지를 끝내면 성과가 큽니다.","협업의 운이 들어옵니다.","데이터와 근거가 당신의 편입니다.","우선순위를 정리하면 속도가 납니다.","짧은 집중이 큰 진전을 만듭니다.","마감을 먼저 박으면 흐름이 살아납니다.","레퍼런스 확보가 설득력을 배가합니다.","컨텍스트 전환을 줄이면 효율이 급상승!"],
+  money:["지출 계획이 수익을 지켜줍니다.","충동구매를 피하면 만족도가 높습니다.","작은 절약이 큰 여유로 이어집니다.","가격 비교가 오늘의 필승 전략.","예비비를 챙기면 마음이 편합니다.","구독/고정비 점검이 중요합니다.","큰 베팅보단 분산이 안전합니다.","계획적 결제가 신용도까지 지켜줍니다."],
+  study:["분산 학습이 효율을 만듭니다.","개념 요약이 이해를 깊게 합니다.","배운 것을 바로 적용해 보세요.","루틴을 지키면 속도가 붙습니다.","멘토의 한마디가 방향을 잡아줍니다.","복습 체크리스트가 성장을 가속합니다.","타이머 학습이 집중을 돕습니다.","오답 노트가 약점을 기회로 바꿉니다."],
+  health:["수면과 수분 보충이 컨디션을 살립니다.","가벼운 운동이 활력을 줍니다.","스트레칭으로 몸과 마음을 풀어주세요.","무리는 금물, 회복이 곧 힘입니다.","소식과 규칙이 오늘의 키.","햇빛 10분이 기분을 맑게 합니다.","자극적 음식보다 담백함이 좋아요.","호흡을 고르면 긴장이 풀립니다."],
+  general:["작은 시작이 큰 변화를 부릅니다.","타이밍이 좋습니다.","준비된 곳에 행운이 머뭅니다.","첫 걸음이 방향을 만듭니다.","꾸준함이 오늘의 치트키.","마음의 여유가 선택을 밝게 합니다.","관찰이 인사이트로 이어집니다.","정리정돈이 생각까지 맑게 합니다."]
 };
-
-const DIRECTIONS = ["동쪽","서쪽","남쪽","북쪽","동남","서남","동북","서북"];
-const COLORS     = ["피어나는 핑크","호박 오렌지","순한 베이지","바나나 옐로","숲 그린","하늘 블루","보라 바이올렛","차분한 네이비"];
-const FOODS      = ["순두부찌개","김치볶음밥","파스타","비빔국수","불고기","연어초밥","우동","치킨","팥빙수","라떼"];
-const ICON       = {num:"📙", dir:"🧭", col:"🎨", food:"🍲"};
+const DIRECTIONS=["동쪽","서쪽","남쪽","북쪽","동남","서남","동북","서북"];
+const COLORS=["핑크","오렌지","베이지","옐로","그린","블루","바이올렛","네이비"];
+const FOODS=["순두부찌개","김치볶음밥","파스타","비빔국수","불고기","연어초밥","우동","치킨","팥빙수","라떼"];
+const ICON={num:"📙",dir:"🧭",col:"🎨",food:"🍲"};
 
 /* 요소 */
-const viewIntro   = $("#viewIntro");
-const viewResult  = $("#viewResult");
-const giftBtn     = $("#giftBtn");
-const openBtn     = $("#openBtn");
-const fortuneText = $("#fortuneText");
-const scoresEl    = $("#scores");
-const kwGrid      = $("#kwGrid");
-const againBtn    = $("#againBtn");
-const shareBtn    = $("#shareBtn");
-const linkBtn     = $("#linkBtn");
+const viewIntro=$("#viewIntro"), viewResult=$("#viewResult"), giftBtn=$("#giftBtn"), openBtn=$("#openBtn");
+const fortuneText=$("#fortuneText"), scoresEl=$("#scores"), kwGrid=$("#kwGrid");
+const againBtn=$("#againBtn"), shareBtn=$("#shareBtn"), linkBtn=$("#linkBtn"), homeBtn=$("#homeBtn");
 
-/* 생성기 */
+/* 생성 */
 function gen(seed){
   const r = seed!=null ? LCG(seed) : Math.random;
-  const pick = (arr)=> arr[Math.floor(r()*arr.length)];
-  const n100 = ()=> Math.floor(60 + r()*40); // 60~100
-
-  const scores = { 금전:n100(), 직장:n100(), 애정:n100(), 학업:n100(), 건강:n100() };
-  const top = Object.entries(scores).sort((a,b)=> b[1]-a[1])[0][0];
-
-  let domain = 'general';
-  if(top==='애정') domain='love';
-  else if(top==='직장') domain='work';
-  else if(top==='금전') domain='money';
-  else if(top==='학업') domain='study';
-  else if(top==='건강') domain='health';
-
-  const message = pick(BANK[domain]);
-  const lucky = { num:Math.floor(1 + r()*99), dir:pick(DIRECTIONS), col:pick(COLORS), food:pick(FOODS) };
-  return {scores,message,lucky};
+  const pick = arr => arr[Math.floor(r()*arr.length)];
+  const n100 = ()=> Math.floor(60+r()*40);
+  const scores={금전:n100(), 직장:n100(), 애정:n100(), 학업:n100(), 건강:n100()};
+  const top=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+  let domain='general';
+  if(top==='애정')domain='love'; else if(top==='직장')domain='work';
+  else if(top==='금전')domain='money'; else if(top==='학업')domain='study';
+  else if(top==='건강')domain='health';
+  return {scores,message:pick(BANK[domain]),lucky:{num:Math.floor(1+r()*99),dir:pick(DIRECTIONS),col:pick(COLORS),food:pick(FOODS)}};
 }
 
-/* 렌더링 */
+/* 렌더 */
 function renderScores(scores){
-  scoresEl.innerHTML = "";
+  scoresEl.innerHTML='';
   for(const [label,val] of Object.entries(scores)){
-    const row = document.createElement('div'); row.className='row';
-    const l = document.createElement('div'); l.className='label'; l.textContent=label;
-    const bar = document.createElement('div'); bar.className='bar';
-    const fill = document.createElement('i'); fill.style.setProperty('--w', val+'%'); bar.appendChild(fill);
-    const v = document.createElement('div'); v.className='val'; v.textContent = `${val}점`;
+    const row=document.createElement('div'); row.className='row';
+    const l=document.createElement('div'); l.className='label'; l.textContent=label;
+    const bar=document.createElement('div'); bar.className='bar';
+    const fill=document.createElement('i'); fill.style.setProperty('--w',val+'%'); bar.appendChild(fill);
+    const v=document.createElement('div'); v.className='val'; v.textContent=`${val}점`;
     row.append(l,bar,v); scoresEl.appendChild(row);
-    setTimeout(()=>{ fill.style.width = val+'%'; }, 30);
+    setTimeout(()=>{fill.style.width=val+'%';},30);
   }
 }
 function renderKeywords(kw){
-  kwGrid.innerHTML = "";
-  const rows = [
-    {ico:ICON.num, label:"숫자", value:String(kw.num)},
-    {ico:ICON.dir, label:"방향", value:kw.dir},
-    {ico:ICON.col, label:"컬러", value:kw.col},
-    {ico:ICON.food,label:"음식", value:kw.food},
-  ];
-  rows.forEach(r=>{
+  kwGrid.innerHTML='';
+  [{ico:ICON.num,label:'숫자',value:String(kw.num)},
+   {ico:ICON.dir,label:'방향',value:kw.dir},
+   {ico:ICON.col,label:'컬러',value:kw.col},
+   {ico:ICON.food,label:'음식',value:kw.food}]
+  .forEach(r=>{
     const div=document.createElement('div'); div.className='krow';
-    const i=document.createElement('div'); i.className='kico'; i.textContent=r.ico;
-    const l=document.createElement('div'); l.className='klabel'; l.textContent=r.label;
-    const v=document.createElement('div'); v.style.fontWeight='800'; v.textContent=r.value;
-    div.append(i,l,v); kwGrid.appendChild(div);
+    div.innerHTML=`<div class="kico">${r.ico}</div><div class="klabel">${r.label}</div><div style="font-weight:800">${r.value}</div>`;
+    kwGrid.appendChild(div);
   });
 }
 
-/* 화면 전환 + 실행 */
+/* 화면 전환 */
 function showResult(seed){
-  const {scores,message,lucky} = gen(seed);
-  fortuneText.textContent = message;
+  const {scores,message,lucky}=gen(seed);
+  fortuneText.textContent=message;
   renderScores(scores);
   renderKeywords(lucky);
   viewIntro.classList.remove('active');
   viewResult.classList.add('active');
-  if(navigator.vibrate) try{ navigator.vibrate(8); }catch(_){}
 }
 
 /* 이벤트 */
-function openGift(){
-  const seed = parseSeed() ?? (Date.now()>>>0);
-  setSeedInUrl(seed);
-  showResult(seed);
+function openGift(){const seed=parseSeed()??(Date.now()>>>0); setSeedInUrl(seed); showResult(seed);}
+giftBtn.addEventListener('click',openGift);
+openBtn.addEventListener('click',openGift);
+againBtn.addEventListener('click',()=>{const seed=Date.now()>>>0; setSeedInUrl(seed); showResult(seed);});
+shareBtn.addEventListener('click',async()=>{const text=`🎁 오늘의 선물 운세 (${todayEl.textContent})\n- ${fortuneText.textContent}\n- 링크: ${location.href}`; try{if(navigator.share){await navigator.share({title:"오늘의 선물 운세",text});}else{await navigator.clipboard.writeText(text);alert("복사 완료! 원하는 곳에 붙여넣기 하세요.");}}catch(_){}}); 
+linkBtn.addEventListener('click',async()=>{const url=location.href; try{await navigator.clipboard.writeText(url);alert('링크가 복사되었습니다!');}catch{prompt('아래 링크를 복사하세요',url);}});
+
+/* 로고 → 홈 */
+function goHome(){
+  viewResult.classList.remove('active');
+  viewIntro.classList.add('active');
+  const u=new URL(location.href); u.searchParams.delete('s'); history.replaceState(null,'',u);
+  try{giftBtn.focus({preventScroll:true});}catch(_){}
+  window.scrollTo({top:0,behavior:'smooth'});
 }
-giftBtn.addEventListener('click', openGift);
-giftBtn.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openGift(); }});
-openBtn.addEventListener('click', openGift);
-
-againBtn.addEventListener('click', ()=>{
-  const seed = (Date.now()>>>0);
-  setSeedInUrl(seed);
-  showResult(seed);
-});
-
-shareBtn.addEventListener('click', async ()=>{
-  const text = `🎁 오늘의 선물 운세 (${todayEl.textContent})
-- ${fortuneText.textContent}
-- 링크: ${location.href}`;
-  try{
-    if(navigator.share){ await navigator.share({title:"오늘의 선물 운세", text}); }
-    else{ await navigator.clipboard.writeText(text); alert("복사 완료! 원하는 곳에 붙여넣기 하세요."); }
-  }catch(_){}
-});
-linkBtn.addEventListener('click', async ()=>{
-  const url = location.href;
-  try{ await navigator.clipboard.writeText(url); alert('링크가 복사되었습니다!'); }
-  catch{ prompt('아래 링크를 복사하세요', url); }
-});
+homeBtn.addEventListener('click',goHome);
+homeBtn.addEventListener('keydown',(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goHome();}});
 </script>
 </body>
 </html>
