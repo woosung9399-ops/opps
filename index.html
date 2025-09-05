@@ -30,22 +30,39 @@
   .view{display:none}
   .view.active{display:block;animation:.3s fadeInUp}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* 인트로 */
   .intro{text-align:center;max-width:760px}
   .intro h2{margin:0;font-size:2rem}
   .intro p{margin:.5rem 0 1rem;font-size:1rem;color:var(--muted)}
   .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
   input[type="date"]{font-family:inherit;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;font-size:1rem}
   .cta{display:inline-block;margin-top:12px;padding:10px 16px;border-radius:999px;background:linear-gradient(180deg,var(--accent),var(--accent-deep));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 6px 0 #ce5c14}
-  .card{background:var(--card);border:1px solid #f2e5cf;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-width:880px}
+
+  /* 결과 카드 */
+  .card{background:var(--card);border:1px solid #f2e5cf;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-width:920px}
   .head{display:flex;gap:14px;align-items:center}
   .zimg{width:84px;height:84px;border-radius:50%;flex:0 0 84px;display:grid;place-items:center;overflow:hidden;border:1px solid rgba(0,0,0,.06);box-shadow:0 6px 16px rgba(0,0,0,.12)}
   .zname{margin:0;font-size:1.25rem}
-  .result-msg{font-size:1.05rem;line-height:1.6;margin:.5rem 0 0}
-  .facts{margin-top:14px;display:grid;gap:10px}
+  .result-msg{white-space:pre-line;font-size:1.05rem;line-height:1.7;margin:.6rem 0 0}
+  .section{margin-top:16px}
+  .section h4{margin:.2rem 0 .6rem;font-size:1rem;color:#7b4b22}
+
+  /* 6가지 점수 */
+  .scores{display:grid;gap:10px}
+  .row-score{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
+  .label{font-weight:700}
+  .bar{height:12px;border-radius:999px;background:#fde7d5;position:relative;overflow:hidden}
+  .bar>i{position:absolute;inset:0;width:var(--w,0%);background:linear-gradient(90deg,#ff9f5c,#ff7a2a);border-radius:999px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  .val{font-weight:800;color:#d8611c}
+
+  /* 행운 정보 */
+  .facts{display:grid;gap:10px}
   .fact{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px;border-radius:12px;background:#fff}
   .f-ico{font-size:1.1rem}
   .f-label{color:#7a5935}
   .f-val{font-weight:800}
+
   .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
   .btns button{all:unset;cursor:pointer;padding:10px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;font-weight:700}
   .hint{font-size:.9rem;opacity:.9}
@@ -76,10 +93,20 @@
           <div class="zimg" id="zodiacImg" aria-hidden="true"></div>
           <h3 class="zname" id="zodiacTitle">별자리</h3>
         </div>
-        <p class="result-msg" id="fortuneText">결과를 불러오는 중…</p>
 
-        <div class="facts" id="facts">
-          <!-- 동적 생성: 점수, 음식, 색, 숫자 -->
+        <div class="section">
+          <h4>오늘의 메시지</h4>
+          <p class="result-msg" id="fortuneText">결과를 불러오는 중…</p>
+        </div>
+
+        <div class="section">
+          <h4>오늘의 점수 (6가지)</h4>
+          <div class="scores" id="scores"></div>
+        </div>
+
+        <div class="section">
+          <h4>행운 정보</h4>
+          <div class="facts" id="facts"></div>
         </div>
 
         <div class="btns">
@@ -96,10 +123,9 @@ const $=s=>document.querySelector(s);
 const intro=$("#viewIntro"), result=$("#viewResult");
 const birthInput=$("#birthInput"), showBtn=$("#showBtn");
 const zodiacTitle=$("#zodiacTitle"), fortuneText=$("#fortuneText"), zodiacImg=$("#zodiacImg");
-const factsEl=$("#facts");
+const scoresEl=$("#scores"), factsEl=$("#facts");
 const shareBtn=$("#shareBtn"), linkBtn=$("#linkBtn");
 
-/* 랜덤 */
 const rnd = () => Math.random();
 
 /* 별자리 계산(서양 12궁) */
@@ -124,85 +150,163 @@ function getZodiac(month,day){
   return null;
 }
 
-/* 별자리별 10개 메시지 */
+/* 별자리 메시지(각 10개, 3줄 이상) — \n으로 줄바꿈 */
 const Z = {
   "양자리":[
-    "시작의 에너지가 강합니다. 먼저 시도해 보세요.","속도를 내되 마무리를 잊지 않으면 완벽합니다.",
-    "당당한 태도가 설득력을 높입니다.","작은 승리가 큰 자신감을 키워줘요.","경쟁보다 ‘나와의 레이스’에 집중해보세요.",
-    "의욕이 넘칠 땐 하나에 올인할 때입니다.","먼저 연락하면 흐름이 열립니다.","짧은 실행이 긴 고민을 이깁니다.",
-    "리더십을 발휘할 순간이 옵니다.","신나는 소식이 당신을 재촉합니다."
+    "시작의 에너지가 가득합니다.\n작은 시도를 바로 실행해 보세요.\n오늘의 첫 걸음이 내일의 큰 도약이 됩니다.",
+    "당당한 태도가 설득력을 높여요.\n속도를 내되, 마무리 체크리스트로 완성도를 챙기면 좋습니다.\n기대 이상의 반응이 돌아올 수 있어요.",
+    "선두에 설 기회가 보입니다.\n먼저 손 들면 흐름이 바뀌고, 리더십이 인정받습니다.\n과감함 뒤엔 책임이 따르니 균형을 잡으세요.",
+    "짧은 실행이 긴 고민을 이깁니다.\n작은 성공을 맛보면 자신감이 커집니다.\n그 에너지로 다음 단계까지 밀고 가세요.",
+    "경쟁보다 ‘나와의 레이스’에 집중하세요.\n페이스를 지키면 지구력이 생깁니다.\n꾸준함이 결국 차이를 만듭니다.",
+    "새로운 도전이 시야를 넓힙니다.\n일단 시작하면 생각보다 수월합니다.\n작은 승리를 기록하며 동력을 축적하세요.",
+    "주도권을 잡아도 좋아요.\n다만 팀의 속도와 호흡을 함께 조율하면 효과가 배가됩니다.\n‘함께 가는 속도’가 오늘의 키입니다.",
+    "열정이 넘치는 날입니다.\n한 가지에 올인하면 성과가 크고 뚜렷합니다.\n집중 시간엔 방해 요소를 정리하세요.",
+    "먼저 연락하거나 제안해 보세요.\n문이 열리고 흐름이 붙습니다.\n선제적 커뮤니케이션이 운을 부릅니다.",
+    "신나는 소식이 다가옵니다.\n준비된 사람에게만 보이는 기회가 있어요.\n가볍게 잡아채면 당신 것이 됩니다."
   ],
   "황소자리":[
-    "꾸준함이 금입니다. 오늘도 작은 루틴을 지켜보세요.","감각적인 선택이 만족도를 올려줍니다.",
-    "가치 있는 것에만 에너지를 쓰면 평온합니다.","속도를 늦추면 더 멀리 갑니다.","안정된 페이스가 최고의 결과를 만듭니다.",
-    "현실적인 기준이 방향을 잡아줍니다.","소소한 즐거움이 큰 힐링이 됩니다.","적립·절약이 실속을 챙겨줍니다.",
-    "신중함이 실수를 줄입니다.","한 번 더 확인하면 걱정이 줄어요."
+    "꾸준함이 최고의 전략입니다.\n작은 루틴을 지키면 마음이 안정됩니다.\n오늘의 성실함이 내일의 자산이 됩니다.",
+    "감각적인 선택이 만족도를 올립니다.\n천천히 고르는 시간이 오히려 효율적입니다.\n가치 있는 것에만 자원을 쓰세요.",
+    "속도를 늦추면 더 멀리 갈 수 있습니다.\n페이스를 지키는 것이 곧 힘입니다.\n탄탄한 기반이 결과를 지켜줍니다.",
+    "현실적인 기준이 방향을 잡아줍니다.\n목표를 쪼개면 부담이 줄어듭니다.\n한 칸씩 전진해도 충분히 잘하고 있어요.",
+    "소소한 즐거움이 큰 힐링이 됩니다.\n익숙한 취향이 컨디션을 회복시킵니다.\n편안함이 창의력의 발판이 됩니다.",
+    "신중함이 실수를 줄입니다.\n확인 후 진행하면 불필요한 손실을 막을 수 있습니다.\n신뢰는 꼼꼼함에서 나옵니다.",
+    "경제적 선택에 운이 따릅니다.\n가격 비교와 절약이 체감 효율을 높입니다.\n미래의 나를 위해 오늘의 선택을 하세요.",
+    "안정된 일상이 가장 큰 경쟁력입니다.\n꾸준한 수면과 식사가 집중을 지켜줍니다.\n몸이 편해야 마음도 강해집니다.",
+    "포기한 듯 보이는 지점에 기회가 숨어있습니다.\n한 번만 더 점검해 보세요.\n의외로 가까운 곳에 답이 있습니다.",
+    "당신의 감각을 믿어도 됩니다.\n소소한 취향이 일상의 행복 지표가 됩니다.\n취향은 꾸준함과 닮아있어요."
   ],
   "쌍둥이자리":[
-    "소통 운이 상승! 대화에서 답을 얻습니다.","두 아이디어를 섞으면 멋진 해법이 나와요.",
-    "가벼운 메시지가 좋은 인연을 부릅니다.","정보의 신뢰도를 마지막에 점검하세요.","변화가 재미를 더합니다. 관성을 깨보세요.",
-    "짧은 미팅이 긴 문서보다 설득력 있습니다.","호기심이 인사이트로 이어집니다.","빠른 피드백이 흐름을 키웁니다.",
-    "유연한 태도가 기회를 확장합니다.","작은 농담이 분위기를 녹입니다."
+    "소통 운이 상승 중입니다.\n짧은 대화 속에 답이 숨어 있습니다.\n가벼운 메시지가 연결을 만듭니다.",
+    "두 아이디어를 섞어 보세요.\n이질감이 시너지가 되는 날입니다.\n유연함이 탁월함을 완성합니다.",
+    "정보의 신뢰도를 점검하면 안정적입니다.\n마지막 사실 확인이 설득력을 높입니다.\n팩트가 당신을 지켜줍니다.",
+    "변화가 재미를 더합니다.\n관성을 깨면 새로운 기회가 보입니다.\n작은 실험이 큰 배움을 줍니다.",
+    "빠른 피드백이 흐름을 키워줍니다.\n짧게, 자주, 가볍게 주고받아 보세요.\n대화의 밀도가 높아집니다.",
+    "호기심이 인사이트로 이어집니다.\n질문 하나가 판을 바꿀 수 있어요.\n왜? 라는 물음이 오늘의 열쇠입니다.",
+    "짧은 미팅이 긴 문서보다 효과적입니다.\n핵심만 나누면 실행이 빨라집니다.\n결정이 쉬워지고 속도가 납니다.",
+    "유머가 분위기를 녹입니다.\n작은 농담이 경직된 공기를 바꿔요.\n편안함이 곧 신뢰입니다.",
+    "멀티태스킹보다 빠른 전환이 유리합니다.\n한 번에 하나씩—그러나 가볍게.\n리듬을 타면 효율이 오릅니다.",
+    "네트워크가 확장되는 날입니다.\n새 연결에서 의외의 힌트를 얻습니다.\n관계를 가볍게 유지하세요."
   ],
   "게자리":[
-    "정서적 교감이 키포인트. 가까운 이들과 따뜻한 시간.","편안함을 먼저 챙기면 성과가 따라옵니다.",
-    "과거의 기억이 힌트를 줍니다.","집중보다 회복이 필요한 날일 수 있어요.","배려가 신뢰를 만들어요.",
-    "감정의 파도엔 작은 휴식이 특효약.","익숙한 장소에서 아이디어가 떠오릅니다.","안전망을 확인하면 과감해집니다.",
-    "소소한 집밥/티타임이 컨디션을 올립니다.","마음의 온도를 지키면 관계가 편안해져요."
+    "정서적 교감이 키포인트입니다.\n마음을 나누면 관계가 단단해집니다.\n따뜻함이 당신의 언어입니다.",
+    "편안함을 먼저 챙기세요.\n안정이 기반이 될 때 성과가 따라옵니다.\n나를 돌보는 것이 곧 주변을 돕는 일입니다.",
+    "과거의 기억에서 힌트를 얻습니다.\n기록을 돌아보면 길이 보입니다.\n경험이 오늘의 나침반입니다.",
+    "회복이 필요한 날일 수 있습니다.\n잠깐의 휴식이 긴 시간의 집중을 만듭니다.\n쉼도 중요한 계획입니다.",
+    "배려가 신뢰를 만듭니다.\n작은 친절이 큰 울림으로 돌아옵니다.\n상대의 속도를 존중해 주세요.",
+    "감정의 파도엔 작은 루틴이 특효약.\n가벼운 산책, 따뜻한 차, 깊은 호흡.\n몸이 안정되면 마음도 따라옵니다.",
+    "익숙한 장소에서 아이디어가 떠오릅니다.\n나만의 아지트를 활용하세요.\n안전감이 창의력을 깨웁니다.",
+    "안전망을 확인하면 과감해집니다.\n최악을 상상하고 준비하면 두려움이 줄어요.\n현명한 용기가 생깁니다.",
+    "집밥 같은 안정감이 필요합니다.\n따뜻한 식사와 충분한 수분 섭취.\n컨디션이 곧 성과입니다.",
+    "마음의 온도를 지키세요.\n편안한 관계가 오늘의 행운입니다.\n부드러움이 가장 강합니다."
   ],
   "사자자리":[
-    "스포트라이트! 표현할수록 운이 커집니다.","자신감 있는 발표가 기회를 부릅니다.",
-    "작은 선행이 큰 응원을 만듭니다.","주도권을 잡고 방향을 제시해 보세요.","칭찬이 협력을 이끕니다.",
-    "당신의 매력이 설득의 핵심입니다.","드레스업/연출이 플러스 요인!","대담한 목표가 동력을 만듭니다.",
-    "과감한 한 걸음이 돌파구가 됩니다.","긍정 에너지가 주변을 밝힙니다."
+    "스포트라이트가 당신을 비춥니다.\n표현할수록 운이 커집니다.\n자신감 있는 한마디가 판을 엽니다.",
+    "발표와 연출에 운이 따릅니다.\n디테일한 준비가 큰 무대를 만듭니다.\n빛날 준비가 되어 있습니다.",
+    "작은 선행이 큰 응원을 부릅니다.\n인정은 주는 만큼 돌아옵니다.\n넉넉함이 협력을 만듭니다.",
+    "주도권을 잡아도 좋습니다.\n방향을 제시하면 모두가 따라옵니다.\n리더십의 본질은 배려입니다.",
+    "칭찬은 최고의 투자입니다.\n사람의 장점을 먼저 보세요.\n분위기가 달라집니다.",
+    "나의 매력이 설득의 핵심입니다.\n강점에 초점을 맞추세요.\n당신의 색이 기준이 됩니다.",
+    "대담한 목표가 동력을 만듭니다.\n크게 그리고 작게 실행하세요.\n스케일과 실행의 균형이 해답입니다.",
+    "과감한 한 걸음이 돌파구를 만듭니다.\n두려움은 행동으로 줄어듭니다.\n움직이면 길이 열려요.",
+    "긍정 에너지가 주변을 밝힙니다.\n당신의 온기가 팀의 온도입니다.\n분위기를 리드하세요.",
+    "스타일링/연출이 플러스 요인!\n보이는 힘을 활용하면 기회가 늘어납니다.\n첫인상이 내 편입니다."
   ],
   "처녀자리":[
-    "디테일이 완성도를 좌우합니다. 체크리스트가 행운템.","정리정돈이 생각도 맑게 해줘요.",
-    "작은 오류를 먼저 잡으면 속도가 붙습니다.","데이터가 판단을 견고하게 합니다.","프로세스를 가볍게 다듬어 보세요.",
-    "균형 잡힌 식단/수면이 집중력을 올립니다.","문서/메일을 한 번 더 검토해요.","미리 준비한 템플릿이 시간을 아껴줍니다.",
-    "실행 로그가 성장의 증거가 됩니다.","바른 자세가 컨디션을 지켜줍니다."
+    "디테일이 완성도를 좌우합니다.\n체크리스트가 오늘의 행운템.\n작은 오류를 먼저 잡아보세요.",
+    "정리정돈이 생각도 맑게 해줍니다.\n책상과 파일을 단장해 보세요.\n머릿속 동선이 빨라집니다.",
+    "데이터가 판단을 견고하게 합니다.\n근거를 모으면 설득은 따라옵니다.\n팩트는 언제나 편안합니다.",
+    "프로세스를 가볍게 다듬어 보세요.\n작은 자동화가 큰 시간을 돌려줍니다.\n반복을 줄이는 게 핵심입니다.",
+    "건강한 루틴이 집중력을 올립니다.\n수면, 수분, 스트레칭.\n기본기가 성과를 지킵니다.",
+    "문서/메일을 한 번 더 검토하세요.\n오탈자와 누락이 줄어듭니다.\n신뢰는 디테일에서 시작됩니다.",
+    "템플릿이 시간을 아껴줍니다.\n표준을 만들면 품질이 일정해집니다.\n안정감이 속도를 낳습니다.",
+    "실행 로그를 남겨 보세요.\n진행이 눈에 보여 동력이 생깁니다.\n작은 체크가 큰 성장을 만듭니다.",
+    "바른 자세로 호흡을 고르세요.\n컨디션이 바로 서면 마음도 바로 섭니다.\n집중이 오래 갑니다.",
+    "일의 순서를 다시 세우면 막힘이 풀립니다.\n우선순위가 답입니다.\n가벼운 것부터 치워보세요."
   ],
   "천칭자리":[
-    "균형 감각이 빛납니다. 모두가 만족할 해법을 찾습니다.","공정한 태도가 신뢰를 만듭니다.",
-    "미적 감각이 설득에 힘을 보탭니다.","대화에서 타협점을 발견하게 될 거예요.","역지사지가 갈등을 녹입니다.",
-    "관계를 정리·정돈하면 마음이 가벼워져요.","상호이익을 제안해 보세요.","작은 감사 인사가 큰 동력을 부릅니다.",
-    "소거법으로 선택을 좁혀보세요.","완급조절이 성과를 만듭니다."
+    "균형 감각이 빛납니다.\n모두가 만족할 해법이 보입니다.\n공정함이 신뢰를 만듭니다.",
+    "미적 감각이 설득의 힘을 더합니다.\n보이는 완성도를 챙겨 보세요.\n디자인은 곧 배려입니다.",
+    "대화에서 타협점을 발견합니다.\n역지사지가 갈등을 녹입니다.\n관계의 온도가 올라갑니다.",
+    "관계를 정리·정돈하면 마음이 가벼워집니다.\n선 긋기와 예의가 함께 갑니다.\n편안한 거리가 친밀함을 지킵니다.",
+    "상호이익을 제안해 보세요.\n함께 이로운 길이 오래 갑니다.\n윈윈의 상상력이 필요합니다.",
+    "작은 감사 인사가 큰 동력을 부릅니다.\n말의 온도가 결과의 온도입니다.\n따뜻함은 늘 안전합니다.",
+    "선택을 미루지 말고 소거법으로 좁혀보세요.\n좋음을 남기기보다 불필요를 덜어내세요.\n선택지가 선명해집니다.",
+    "완급조절이 성과를 만듭니다.\n속도와 휴식의 리듬을 조율하세요.\n지치지 않는 것이 가장 중요합니다.",
+    "공정한 기준을 먼저 제시하세요.\n기준이 있으면 합의가 쉽습니다.\n신뢰는 기준에서 태어납니다.",
+    "예술·전시·음악이 마음의 균형을 맞춰 줍니다.\n감상이 곧 회복입니다.\n작은 영감이 큰 변화를 부릅니다."
   ],
   "전갈자리":[
-    "몰입력이 최고조. 한 가지를 깊게 파보세요.","진심 어린 대화가 변화를 만듭니다.",
-    "핵심을 파악하면 갈등이 풀립니다.","집중 시간에 방해 요소를 차단하세요.","깊은 기록이 통찰을 남깁니다.",
-    "미스터리를 해소할 키가 당신에게 있습니다.","의지력이 장애물을 녹입니다.","단호한 기준이 나를 지켜줍니다.",
-    "감정의 뿌리를 이해하면 편안해져요.","소수정예 전략이 효과적입니다."
+    "몰입력이 최고조입니다.\n한 가지를 깊게 파보세요.\n깊이는 차이를 만듭니다.",
+    "진심 어린 대화가 변화를 만듭니다.\n감정의 뿌리를 이해하세요.\n문제가 아니라 마음이 열쇠입니다.",
+    "핵심을 파악하면 갈등이 풀립니다.\n문제의 중심은 단순합니다.\n주요 원인 하나에 집중하세요.",
+    "집중 시간에 방해 요소를 차단하세요.\n방해 금지(Do Not Disturb) 모드가 유효합니다.\n몰입이 성과를 바꿉니다.",
+    "깊은 기록이 통찰을 남깁니다.\n느낌을 글로 붙잡아 보세요.\n패턴이 보이기 시작합니다.",
+    "미스터리를 해소할 키가 당신에게 있습니다.\n사실 확인과 질문이 해답을 부릅니다.\n추론보다 근거가 먼저입니다.",
+    "의지력이 장애물을 녹입니다.\n단호한 결심이 환경을 바꿉니다.\n기세가 상대를 압도합니다.",
+    "단호한 기준이 나를 지켜줍니다.\n경계는 존중을 부릅니다.\n선명할수록 편안합니다.",
+    "감정과 사실의 균형을 잡으세요.\n어느 한쪽이 과하면 왜곡이 생깁니다.\n균형이 곧 진실입니다.",
+    "소수정예 전략이 효과적입니다.\n질 높은 사람들과 깊이 있게.\n양보다 질이 답입니다."
   ],
   "사수자리":[
-    "확장과 탐험! 시야를 넓힐수록 기회가 열려요.","큰 그림을 그리고 작은 실행으로 이어가요.",
-    "낙관이 추진력을 만듭니다.","여행/야외 활동이 영감을 줍니다.","새로운 공부가 지평을 넓힙니다.",
-    "모험하되 안전장치도 챙겨요.","유연한 일정이 행운을 끌어옵니다.","재미를 섞으면 지속성이 올라갑니다.",
-    "도전의식이 좋은 사람들을 불러옵니다.","넓은 네트워크에서 기회가 옵니다."
+    "확장과 탐험의 기운이 강합니다.\n시야를 넓히면 기회가 열립니다.\n멀리 보고 가볍게 시작하세요.",
+    "큰 그림을 그리고 작은 실행으로 이어가세요.\n상상은 크게, 행동은 작게.\n스텝이 답입니다.",
+    "낙관이 추진력을 만듭니다.\n긍정은 리스크를 없애진 않지만, 견딜 힘을 줍니다.\n밝은 시선은 지혜입니다.",
+    "여행/야외 활동이 영감을 줍니다.\n움직이면 생각이 열립니다.\n경험이 최고의 교과서입니다.",
+    "새로운 공부가 지평을 넓힙니다.\n학습이 곧 확장입니다.\n지적 호기심을 따라가세요.",
+    "모험하되 안전장치를 챙기세요.\n자유와 책임은 함께 갑니다.\n준비된 도전이 가장 멋집니다.",
+    "유연한 일정이 행운을 끌어옵니다.\n여백이 기회를 담습니다.\n빈칸이 있어야 선물이 들어옵니다.",
+    "재미를 섞으면 지속성이 올라갑니다.\n즐거움은 최고의 연료입니다.\n가벼운 보상도 괜찮아요.",
+    "도전의식이 좋은 사람들을 불러옵니다.\n같은 방향의 동료가 나타납니다.\n함께가 더 멀리 갑니다.",
+    "넓은 네트워크에서 기회가 옵니다.\n연결을 열어두세요.\n메시지 하나가 판을 바꿉니다."
   ],
   "염소자리":[
-    "목표지향의 날. 계획표가 힘이 됩니다.","원칙과 성실함이 보답받습니다.",
-    "조용한 꾸준함이 가장 강력합니다.","현실적인 마일스톤이 진전을 만듭니다.","책임감이 신뢰를 쌓아줍니다.",
-    "공들인 만큼 결과가 정직합니다.","장기전 준비에 유리한 흐름이에요.","규율이 자유를 만들어 줍니다.",
-    "한 계단씩 안정적으로 올라갑니다.","기본에 충실할수록 빛이 납니다."
+    "목표지향의 날입니다.\n계획표가 힘이 됩니다.\n한 칸씩 체크하면 끝이 보입니다.",
+    "원칙과 성실함이 보답받습니다.\n정직한 과정이 결과를 만듭니다.\n시간은 당신 편입니다.",
+    "조용한 꾸준함이 가장 강력합니다.\n눈에 띄지 않아도 흔들리지 않습니다.\n지속이 실력입니다.",
+    "현실적인 마일스톤이 진전을 만듭니다.\n측정 가능한 단위를 사용하세요.\n피드백이 명확해집니다.",
+    "책임감이 신뢰를 쌓아줍니다.\n약속을 지키는 사람이 기회를 얻습니다.\n브랜드는 행동입니다.",
+    "공들인 만큼 결과가 정직합니다.\n기본에 충실할수록 흔들리지 않습니다.\n정성은 늘 티가 납니다.",
+    "장기전 준비에 유리한 흐름입니다.\n지속 가능한 루틴을 설계하세요.\n마라톤의 호흡이 필요합니다.",
+    "규율이 자유를 만들어 줍니다.\n원칙이 있어야 예외가 아름답습니다.\n틀은 당신을 돕습니다.",
+    "한 계단씩 안정적으로 올라갑니다.\n급하지 않아도 충분히 빠릅니다.\n안전한 성장이 진짜 성장입니다.",
+    "기본기가 빛나는 날입니다.\n한 번 더 연습하세요.\n단단함이 경쟁력입니다."
   ],
   "물병자리":[
-    "새로운 방식이 통합니다. 실험을 두려워하지 마세요.","네트워킹에서 뜻밖의 힌트를 얻어요.",
-    "자율성이 창의력을 깨웁니다.","틀 밖의 아이디어가 환영받습니다.","오픈소스/레퍼런스가 해결책을 줍니다.",
-    "가벼운 테스트가 큰 리스크를 줄입니다.","유니크함이 경쟁력입니다.","디지털 정리가 효율을 올립니다.",
-    "가치관이 맞는 사람과 연결되기 쉬운 날.","규칙을 알면 예외를 만들 줄 알게 됩니다."
+    "새로운 방식이 통합니다.\n가벼운 실험부터 시작해 보세요.\n작은 테스트가 큰 리스크를 줄입니다.",
+    "네트워킹에서 뜻밖의 힌트를 얻습니다.\n다양성이 해답을 줍니다.\n열린 대화를 즐기세요.",
+    "자율성이 창의력을 깨웁니다.\n스스로 정한 기준에 몰입해 보세요.\n책임이 곧 자유입니다.",
+    "틀 밖의 아이디어가 환영받습니다.\n기준을 이해했기에 예외가 빛납니다.\n새로움은 준비된 자의 특권.",
+    "오픈소스/레퍼런스가 해결책을 줍니다.\n남의 해답도 나의 자산입니다.\n서로의 지식이 연결됩니다.",
+    "유니크함이 경쟁력입니다.\n나답게—가장 나답게.\n차별점이 설득력을 만듭니다.",
+    "디지털 정리가 효율을 올립니다.\n폴더와 이름 규칙이 시간을 아껴줍니다.\n정돈된 화면이 맑은 생각을 부릅니다.",
+    "공동체 속의 개인으로 빛나세요.\n같이의 가치가 나의 가치를 키웁니다.\n협업은 곱셈입니다.",
+    "미래지향적 선택이 유리합니다.\n조금 앞선 길을 택해 보세요.\n먼저 적응한 사람이 이깁니다.",
+    "정보의 개방성이 혁신을 부릅니다.\n공유는 잃는 게 아니라 얻는 것입니다.\n협력의 네트워크를 넓히세요."
   ],
   "물고기자리":[
-    "감수성이 풍부합니다. 직관 메모가 인사이트로.","작은 친절이 큰 울림으로 돌아옵니다.",
-    "휴식과 몰입의 균형을 잡아보세요.","음악/예술이 회복을 돕습니다.","꿈에서 아이디어가 스며듭니다.",
-    "느슨한 산책이 마음을 정리해 줘요.","공감이 대화를 따뜻하게 합니다.","경계를 부드럽게 지키는 연습을 해요.",
-    "물 흐르듯 맡기면 해결되는 일도 있어요.","섬세함이 매력으로 빛납니다."
+    "감수성이 풍부합니다.\n느낌을 글로 기록하세요.\n직관 메모가 인사이트로 바뀝니다.",
+    "작은 친절이 큰 울림으로 돌아옵니다.\n따뜻한 말 한마디가 골든 타임입니다.\n마음의 온도를 나눠 보세요.",
+    "휴식과 몰입의 균형이 필요합니다.\n과한 감정 노동엔 회복이 우선입니다.\n쉼이 곧 생산성입니다.",
+    "음악/예술이 회복을 돕습니다.\n좋아하는 플레이리스트를 틀어 보세요.\n정서적 리듬이 맞춰집니다.",
+    "꿈에서 아이디어가 스며듭니다.\n아침의 기억을 붙잡아 보세요.\n감각은 종종 진실을 압축합니다.",
+    "느슨한 산책이 마음을 정리합니다.\n걷다 보면 관계도 생각도 가벼워집니다.\n자연이 좋은 조력자입니다.",
+    "공감이 대화를 따뜻하게 합니다.\n먼저 듣는 사람이 주인공입니다.\n경청은 최고의 기술입니다.",
+    "경계를 부드럽게 지키는 연습을 하세요.\n거절도 친절할 수 있습니다.\n나와 타인을 함께 지키는 법입니다.",
+    "물 흐르듯 맡기면 해결되는 일도 있어요.\n조급함을 내려놓으면 길이 보입니다.\n가끔은 순리에 맡기는 지혜.",
+    "섬세함이 매력으로 빛납니다.\n작은 디테일이 마음을 움직입니다.\n당신의 다정함이 답입니다."
   ],
   "공통":[
-    "작은 시작이 큰 변화를 부릅니다.","타이밍이 좋습니다. 가볍게 시도해 보세요.",
-    "준비된 곳에 행운이 머뭅니다.","첫 걸음이 방향을 만듭니다.","꾸준함이 오늘의 치트키.",
-    "마음의 여유가 선택을 밝게 합니다.","관찰이 인사이트로 이어집니다.","정리정돈이 생각까지 맑게 해줘요.",
-    "친절은 늘 좋은 투자입니다.","하루의 목표를 한 줄로 적어보세요."
+    "작은 시작이 큰 변화를 부릅니다.\n첫 걸음을 가볍게 떼어 보세요.\n꾸준함이 오늘의 치트키입니다.",
+    "타이밍이 좋습니다.\n준비된 곳에 행운이 머뭅니다.\n시도해 보면 생각보다 쉽습니다.",
+    "관찰이 인사이트로 이어집니다.\n기록해 두면 다음이 편해집니다.\n메모는 미래의 나에게 주는 선물입니다.",
+    "정리정돈이 생각까지 맑게 합니다.\n정돈된 책상, 정돈된 마음.\n작은 정리가 큰 차이를 만듭니다.",
+    "친절은 늘 좋은 투자입니다.\n따뜻한 말 한마디가 문을 엽니다.\n관계의 온도를 올려 보세요.",
+    "하루의 목표를 한 줄로 적어보세요.\n선명한 목표가 선택을 가볍게 합니다.\n작은 완료가 행복을 키웁니다.",
+    "과감한 선택이 필요할 수 있습니다.\n기회는 준비된 사람을 찾습니다.\n두려움보다 호기심을 선택하세요.",
+    "감사 목록을 써보세요.\n시선이 밝아지면 기회가 커집니다.\n마음의 근력이 생깁니다.",
+    "리듬을 만드세요.\n일과 휴식의 균형이 효율을 지킵니다.\n지치지 않는 게 중요합니다.",
+    "한 번 더 확인해 보세요.\n작은 실수는 예방이 가능합니다.\n세심함이 신뢰를 지켜줍니다."
   ]
 };
 
@@ -210,7 +314,7 @@ const Z = {
 const FOODS = ["순두부찌개","김치볶음밥","파스타","비빔국수","불고기","연어초밥","우동","치킨","팥빙수","라떼","김밥","칼국수","떡볶이","만두","샐러드"];
 const COLORS_KO = ["피치 오렌지","바나나 옐로","숲 그린","하늘 블루","포도 바이올렛","분홍 핑크","차분 네이비","코랄 레드","라일락","민트","올리브","샌드 베이지"];
 
-/* 별자리 이미지(SVG 배지) 생성 */
+/* 별자리 배지 SVG */
 function zodiacSVG(sym, gradA="#ffd08a", gradB="#ff9f5c"){
   const svg = `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="84" height="84" aria-hidden="true">
@@ -235,29 +339,50 @@ function pickMsg(sign){
   return arr[Math.floor(rnd()*arr.length)];
 }
 
-/* 값 생성 */
-function genLucky(){
-  const score = Math.floor(60 + rnd()*40); // 60~100
-  const food = FOODS[Math.floor(rnd()*FOODS.length)];
-  const color = COLORS_KO[Math.floor(rnd()*COLORS_KO.length)];
-  const num = String(Math.floor(rnd()*1_000_000)).padStart(6,"0");
-  return {score, food, color, num};
+/* 1~45 중 중복 없는 6개 번호 생성 */
+function genLuckyNumbers(){
+  const set = new Set();
+  while(set.size < 6){
+    set.add(1 + Math.floor(rnd()*45));
+  }
+  return Array.from(set).sort((a,b)=>a-b);
 }
 
-/* 렌더 팩트 라인 */
-function renderFacts({score,food,color,num}){
-  factsEl.innerHTML = "";
-  const rows = [
-    {ico:"⭐", label:"오늘의 점수", value:`${score}점`},
-    {ico:"🍽️", label:"행운 음식", value:food},
-    {ico:"🎨", label:"행운 색", value:color},
-    {ico:"#️⃣", label:"행운 숫자", value:num},
+/* 점수 6가지 생성: 종합, 사랑, 직장, 금전, 학업, 건강 */
+function genScores(){
+  const n100 = ()=> Math.floor(60 + rnd()*40); // 60~100
+  const love=n100(), work=n100(), money=n100(), study=n100(), health=n100();
+  const overall = Math.round((love+work+money+study+health)/5);
+  return { 종합:overall, 사랑:love, 직장:work, 금전:money, 학업:study, 건강:health };
+}
+
+/* 렌더: 점수 6가지 */
+function renderScores(scores){
+  scoresEl.innerHTML='';
+  for(const [label,val] of Object.entries(scores)){
+    const row=document.createElement('div'); row.className='row-score';
+    const l=document.createElement('div'); l.className='label'; l.textContent=label;
+    const bar=document.createElement('div'); bar.className='bar';
+    const fill=document.createElement('i'); fill.style.setProperty('--w', val+'%'); bar.appendChild(fill);
+    const v=document.createElement('div'); v.className='val'; v.textContent=`${val}점`;
+    row.append(l,bar,v); scoresEl.appendChild(row);
+    setTimeout(()=>{fill.style.width=val+'%';},30);
+  }
+}
+
+/* 렌더: 행운 정보 */
+function renderFacts(food,color,nums){
+  factsEl.innerHTML='';
+  const rows=[
+    {ico:"🍽️",label:"행운 음식",value:food},
+    {ico:"🎨",label:"행운 색",value:color},
+    {ico:"🔢",label:"행운 숫자(1–45, 6개)",value:nums.join(" · ")}
   ];
   for(const r of rows){
-    const div=document.createElement('div'); div.className="fact";
-    div.innerHTML = `<div class="f-ico">${r.ico}</div>
-                     <div class="f-label">${r.label}</div>
-                     <div class="f-val">${r.value}</div>`;
+    const div=document.createElement('div'); div.className='fact';
+    div.innerHTML=`<div class="f-ico">${r.ico}</div>
+                   <div class="f-label">${r.label}</div>
+                   <div class="f-val">${r.value}</div>`;
     factsEl.appendChild(div);
   }
 }
@@ -276,12 +401,14 @@ function showFortune(){
   const title = sign ? `${sign}` : "오늘의 운세(공통)";
   zodiacTitle.textContent = title;
   fortuneText.textContent = pickMsg(sign || "공통");
-
-  // 이미지 렌더
   zodiacImg.innerHTML = zodiacSVG(sym);
 
-  // 보너스 정보
-  renderFacts(genLucky());
+  // 점수(6가지) + 행운 정보 반영
+  renderScores(genScores());
+  const luckyNums = genLuckyNumbers();
+  const food = FOODS[Math.floor(rnd()*FOODS.length)];
+  const color = COLORS_KO[Math.floor(rnd()*COLORS_KO.length)];
+  renderFacts(food, color, luckyNums);
 
   intro.classList.remove("active");
   result.classList.add("active");
@@ -293,9 +420,15 @@ showBtn.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.p
 
 /* 공유 & 링크 (DOB 미포함) */
 shareBtn.addEventListener("click", async ()=>{
-  const text = `🔮 ${zodiacTitle.textContent}\n${fortuneText.textContent}
-- ${factsEl.querySelectorAll('.f-val')[0]?.textContent} / ${factsEl.querySelectorAll('.f-val')[1]?.textContent}
-- ${factsEl.querySelectorAll('.f-val')[2]?.textContent} / ${factsEl.querySelectorAll('.f-val')[3]?.textContent}`;
+  const nums = Array.from(factsEl.querySelectorAll('.f-val'))?.[2]?.textContent || "";
+  const text = `🔮 ${zodiacTitle.textContent}
+${fortuneText.textContent}
+
+[점수] 종합/사랑/직장/금전/학업/건강
+${Array.from(scoresEl.querySelectorAll('.row-score .val')).map(el=>el.textContent).join(' / ')}
+
+[행운] ${factsEl.querySelectorAll('.f-val')[0]?.textContent} / ${factsEl.querySelectorAll('.f-val')[1]?.textContent}
+숫자: ${nums}`;
   try{
     if(navigator.share){ await navigator.share({title:"오늘의 별자리 운세", text}); }
     else { await navigator.clipboard.writeText(text); alert("복사 완료!"); }
