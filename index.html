@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>오늘의 운세🔮</title>
+<title>오늘의 별자리 운세</title>
 <meta name="theme-color" content="#FFE18A"/>
 
-<!-- 주소창 아이콘: 주황색 원형 -->
+<!-- 주황색 동그라미 파비콘 -->
 <link rel="icon" href="data:image/svg+xml,
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
   <circle cx='50' cy='50' r='45' fill='%23ff9800'/>
@@ -19,97 +19,55 @@
     font-weight:normal; font-style:normal; font-display:swap;
   }
   :root{
-    --grid:#f8d875; --bg:#ffe18a; --ink:#5a3b1a; --accent:#ff8a42; --accent-deep:#ea6a1b;
-    --card:#fffaf0; --muted:#8b6d4e;
+    --bg:#ffe18a; --ink:#5a3b1a; --accent:#ff8a42; --accent-deep:#ea6a1b;
+    --card:#fffaf0;
   }
   *{box-sizing:border-box}
-  html,body{margin:0; height:100%; font-family:'DungGeunMo', Pretendard, system-ui, -apple-system, sans-serif;}
-  body{
-    color:var(--ink);
-    background:
-      repeating-linear-gradient(0deg, var(--bg), var(--bg) 48px, var(--grid) 48px, var(--grid) 50px),
-      var(--bg);
-    display:flex; flex-direction:column; min-height:100dvh;
-  }
-  /* 헤더/푸터 */
-  .site-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;padding:10px 14px;border-bottom:1px solid #e5e7eb}
-  .site-header .logo{cursor:pointer}
-  .site-header .logo img{height:28px;max-width:140px;object-fit:contain}
-  .site-header h1{margin:0;flex:1;text-align:center;font-size:1.05rem;color:#111}
-  .site-header .today{font-size:.9rem;color:#444}
-  footer{position:fixed;left:0;right:0;bottom:0;text-align:center;padding:10px 0;font-size:.85rem;color:#6b7280;background:rgba(255,255,255,.65);backdrop-filter:blur(6px);border-top:1px solid #e5e7eb}
-  /* 레이아웃 */
-  .container{flex:1;display:flex;align-items:center;justify-content:center;padding:16px 16px 84px}
-  .view{display:none;animation:.35s ease both fadeInUp}
-  .view.active{display:block}
-  @keyframes fadeInUp{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:none}}
-  /* 인트로 */
-  .intro{text-align:center; max-width:720px}
-  .intro .title{margin:0; font-size:2rem; line-height:1.2}
-  .intro .subtitle{margin:.25rem 0 0; font-size:1.15rem; color:#7b4b22}
-  .plate{margin:24px auto 10px; width:min(70vw,260px); aspect-ratio:1/1; border-radius:24px; background:#fff;
-         box-shadow:0 10px 24px rgba(0,0,0,.15); display:flex; align-items:center; justify-content:center}
-  .gift{font-size:5rem; cursor:pointer; filter:drop-shadow(0 12px 20px rgba(0,0,0,.2))}
-  .gift:active{transform:scale(.98)}
-  .cta{display:inline-block; margin-top:10px; padding:10px 16px; border-radius:999px;
-       background:linear-gradient(180deg, var(--accent), var(--accent-deep)); color:#fff; font-weight:700;
-       box-shadow:0 6px 0 #ce5c14; cursor:pointer}
-  .cta:active{transform:translateY(2px); box-shadow:0 4px 0 #ce5c14}
-  /* 결과 카드 */
-  .card{background:var(--card); border:1px solid #f2e5cf; border-radius:16px; padding:16px;
-        box-shadow:0 10px 32px rgba(0,0,0,.12); max-width:820px}
-  .result-msg{font-size:1.05rem; line-height:1.6; margin:0}
-  .scores{margin-top:14px; display:grid; gap:10px}
-  .row{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px}
-  .label{font-weight:700}
-  .bar{height:12px; border-radius:999px; background:#fde7d5; position:relative; overflow:hidden}
-  .bar>i{position:absolute; inset:0; width:var(--w,0%); background:linear-gradient(90deg,#ff9f5c,#ff7a2a);
-         border-radius:999px; transition:width .8s cubic-bezier(.2,.8,.2,1)}
-  .val{font-weight:800; color:#d8611c}
-  .kw{margin-top:14px}
-  .kw h3{margin:0 0 8px; font-size:1rem}
-  .kwgrid{display:grid; gap:10px}
-  .krow{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; padding:10px;
-        border-radius:12px; background:#fff}
-  .kico{font-size:1.15rem}
-  .klabel{color:#7a5935}
-  .btns{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
-  button{all:unset; cursor:pointer; padding:10px 14px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; font-weight:700}
-  button.primary{background:linear-gradient(180deg,#ff9f5c,#ff7a2a); color:#fff; border-color:#ff8a42}
+  body{margin:0;font-family:'DungGeunMo',Pretendard,system-ui,-apple-system,sans-serif;background:var(--bg);min-height:100vh;color:var(--ink);display:flex;flex-direction:column}
+  .site-header{position:sticky;top:0;display:flex;align-items:center;justify-content:center;background:#fff;padding:12px;border-bottom:1px solid #e5e7eb}
+  .site-header h1{margin:0;font-size:1.2rem;color:#111}
+  .container{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
+  .view{display:none}
+  .view.active{display:block;animation:.3s fadeInUp}
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .intro{text-align:center;max-width:720px}
+  .intro h2{margin:0;font-size:2rem}
+  .intro p{margin:.5rem 0 1rem;font-size:1rem}
+  .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  input[type="date"]{font-family:inherit;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;font-size:1rem}
+  .cta{display:inline-block;margin-top:12px;padding:10px 16px;border-radius:999px;background:linear-gradient(180deg,var(--accent),var(--accent-deep));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 6px 0 #ce5c14}
+  .card{background:var(--card);border:1px solid #f2e5cf;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-width:800px}
+  .card h3{margin:0 0 .25rem;font-size:1.15rem}
+  .result-msg{font-size:1.05rem;line-height:1.6;margin:.25rem 0 0}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .btns button{all:unset;cursor:pointer;padding:10px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;font-weight:700}
+  .hint{font-size:.9rem;opacity:.85}
 </style>
 </head>
 <body>
   <!-- 헤더 -->
   <header class="site-header">
-    <div class="logo" id="homeBtn" role="button" tabindex="0" aria-label="처음 화면으로">
-      <img src="https://api.multicampus.com/ssf/v1/resource/public/images/FILBS202506207041267" alt="multicampus logo">
-    </div>
-    <h1>오늘의 운세</h1>
-    <div class="today" id="today"></div>
+    <h1>오늘의 별자리 운세</h1>
   </header>
 
   <div class="container">
     <!-- 인트로 -->
-    <section id="viewIntro" class="view intro active" aria-label="인트로">
-      <h2 class="title">🔮</h2>
-      <p class="subtitle">선물상자를 열면 오늘의 운세가 나와요!</p>
-      <div class="plate" aria-hidden="true">
-        <div id="giftBtn" class="gift" role="button" tabindex="0" aria-label="선물상자 열기">🎁</div>
+    <section id="viewIntro" class="view intro active">
+      <h2>학습자님!</h2>
+      <p>생년월일을 입력하면 별자리 맞춤 운세가 보여요 ✨</p>
+      <div class="row">
+        <input type="date" id="birthInput" aria-label="생년월일" />
       </div>
-      <div class="cta" id="openBtn">OPEN!</div>
+      <div class="cta" id="showBtn" role="button" tabindex="0" aria-label="운세 보기">운세 보기</div>
+      <p class="hint" style="margin-top:10px">* 생년월일을 입력하지 않으면 오늘의 공통 운세가 보여요</p>
     </section>
 
     <!-- 결과 -->
-    <section id="viewResult" class="view" aria-label="운세 결과">
+    <section id="viewResult" class="view">
       <div class="card">
+        <h3 id="zodiacTitle">별자리</h3>
         <p class="result-msg" id="fortuneText">결과를 불러오는 중…</p>
-        <div class="scores" id="scores"></div>
-        <div class="kw">
-          <h3>행운 키워드</h3>
-          <div class="kwgrid" id="kwGrid"></div>
-        </div>
         <div class="btns">
-          <button id="againBtn" class="primary">다시 열기</button>
           <button id="shareBtn">공유/복사</button>
           <button id="linkBtn">링크</button>
         </div>
@@ -117,43 +75,238 @@
     </section>
   </div>
 
-  <footer>© multicampus arcade</footer>
-
 <script>
 "use strict";
-const $ = s => document.querySelector(s);
-$("#today").textContent = new Date().toLocaleDateString("ko-KR",{dateStyle:"medium"});
-function LCG(seed){ let s=(seed>>>0); return ()=>((s=(s*1664525+1013904223)>>>0)/4294967296); }
-function parseSeed(){ try{ const u=new URL(location.href); const s=u.searchParams.get('s'); if(s===null) return null; const n=Number(s); return Number.isFinite(n)? n:null; }catch(_){ return null } }
-function setSeedInUrl(seed){ const u=new URL(location.href); u.searchParams.set('s', String(seed>>>0)); history.replaceState(null,'',u); return u.toString(); }
+const $=s=>document.querySelector(s);
+const intro=$("#viewIntro"), result=$("#viewResult");
+const birthInput=$("#birthInput"), showBtn=$("#showBtn");
+const zodiacTitle=$("#zodiacTitle"), fortuneText=$("#fortuneText");
+const shareBtn=$("#shareBtn"), linkBtn=$("#linkBtn");
 
-const BANK={love:["마음의 온도가 올라갑니다.","속도를 맞추면 거리감이 줄어듭니다.","작은 배려가 큰 설렘으로 돌아옵니다.","과거의 오해가 풀립니다.","새 인연의 신호가 보입니다.","대화의 질에 집중하세요.","기대치를 조율하면 안정감이 생깁니다.","작은 약속이 신뢰를 만듭니다."],
-work:["핵심 한 가지를 끝내면 성과가 큽니다.","협업의 운이 들어옵니다.","데이터와 근거가 당신의 편입니다.","우선순위를 정리하면 속도가 납니다.","짧은 집중이 큰 진전을 만듭니다.","마감을 먼저 박으면 흐름이 살아납니다.","레퍼런스 확보가 설득력을 배가합니다.","컨텍스트 전환을 줄이면 효율이 급상승!"],
-money:["지출 계획이 수익을 지켜줍니다.","충동구매를 피하면 만족도가 높습니다.","작은 절약이 큰 여유로 이어집니다.","가격 비교가 오늘의 필승 전략.","예비비를 챙기면 마음이 편합니다.","구독/고정비 점검이 중요합니다.","큰 베팅보단 분산이 안전합니다.","계획적 결제가 신용도까지 지켜줍니다."],
-study:["분산 학습이 효율을 만듭니다.","개념 요약이 이해를 깊게 합니다.","배운 것을 바로 적용해 보세요.","루틴을 지키면 속도가 붙습니다.","멘토의 한마디가 방향을 잡아줍니다.","복습 체크리스트가 성장을 가속합니다.","타이머 학습이 집중을 돕습니다.","오답 노트가 약점을 기회로 바꿉니다."],
-health:["수면과 수분 보충이 컨디션을 살립니다.","가벼운 운동이 활력을 줍니다.","스트레칭으로 몸과 마음을 풀어주세요.","무리는 금물, 회복이 곧 힘입니다.","소식과 규칙이 오늘의 키.","햇빛 10분이 기분을 맑게 합니다.","자극적 음식보다 담백함이 좋아요.","호흡을 고르면 긴장이 풀립니다."],
-general:["작은 시작이 큰 변화를 부릅니다.","타이밍이 좋습니다.","준비된 곳에 행운이 머뭅니다.","첫 걸음이 방향을 만듭니다.","꾸준함이 오늘의 치트키.","마음의 여유가 선택을 밝게 합니다.","관찰이 인사이트로 이어집니다.","정리정돈이 생각까지 맑게 합니다."]};
-const DIRECTIONS=["동쪽","서쪽","남쪽","북쪽","동남","서남","동북","서북"];
-const COLORS=["핑크","오렌지","베이지","옐로","그린","블루","바이올렛","네이비"];
-const FOODS=["순두부찌개","김치볶음밥","파스타","비빔국수","불고기","연어초밥","우동","치킨","팥빙수","라떼"];
-const ICON={num:"📙",dir:"🧭",col:"🎨",food:"🍲"};
+/* 랜덤 (시드 없이 단순 랜덤) */
+const rnd = () => Math.random();
 
-const viewIntro=$("#viewIntro"), viewResult=$("#viewResult"), giftBtn=$("#giftBtn"), openBtn=$("#openBtn");
-const fortuneText=$("#fortuneText"), scoresEl=$("#scores"), kwGrid=$("#kwGrid");
-const againBtn=$("#againBtn"), shareBtn=$("#shareBtn"), linkBtn=$("#linkBtn"), homeBtn=$("#homeBtn");
+/* 별자리 계산(서양 12궁) */
+function getZodiac(month,day){
+  const rules = [
+    ["물병자리",1,20,2,18],
+    ["물고기자리",2,19,3,20],
+    ["양자리",3,21,4,19],
+    ["황소자리",4,20,5,20],
+    ["쌍둥이자리",5,21,6,21],
+    ["게자리",6,22,7,22],
+    ["사자자리",7,23,8,22],
+    ["처녀자리",8,23,9,22],
+    ["천칭자리",9,23,10,22],
+    ["전갈자리",10,23,11,22],
+    ["사수자리",11,23,12,21],
+    ["염소자리",12,22,1,19]
+  ];
+  for(const [name,m1,d1,m2,d2] of rules){
+    if((month===m1 && day>=d1) || (month===m2 && day<=d2)) return name;
+  }
+  return null;
+}
 
-function gen(seed){const r=seed!=null?LCG(seed):Math.random;const pick=a=>a[Math.floor(r()*a.length)];const n100=()=>Math.floor(60+r()*40);const scores={금전:n100(),직장:n100(),애정:n100(),학업:n100(),건강:n100()};const top=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];let domain='general';if(top==='애정')domain='love';else if(top==='직장')domain='work';else if(top==='금전')domain='money';else if(top==='학업')domain='study';else if(top==='건강')domain='health';return{scores,message:pick(BANK[domain]),lucky:{num:Math.floor(1+r()*99),dir:pick(DIRECTIONS),col:pick(COLORS),food:pick(FOODS)}};}
-function renderScores(scores){scoresEl.innerHTML='';for(const [label,val] of Object.entries(scores)){const row=document.createElement('div');row.className='row';const l=document.createElement('div');l.className='label';l.textContent=label;const bar=document.createElement('div');bar.className='bar';const fill=document.createElement('i');fill.style.setProperty('--w',val+'%');bar.appendChild(fill);const v=document.createElement('div');v.className='val';v.textContent=`${val}점`;row.append(l,bar,v);scoresEl.appendChild(row);setTimeout(()=>{fill.style.width=val+'%';},30);}}
-function renderKeywords(kw){kwGrid.innerHTML='';[{ico:ICON.num,label:'숫자',value:String(kw.num)},{ico:ICON.dir,label:'방향',value:kw.dir},{ico:ICON.col,label:'컬러',value:kw.col},{ico:ICON.food,label:'음식',value:kw.food}].forEach(r=>{const div=document.createElement('div');div.className='krow';div.innerHTML=`<div class="kico">${r.ico}</div><div class="klabel">${r.label}</div><div style="font-weight:800">${r.value}</div>`;kwGrid.appendChild(div);});}
-function showResult(seed){const {scores,message,lucky}=gen(seed);fortuneText.textContent=message;renderScores(scores);renderKeywords(lucky);viewIntro.classList.remove('active');viewResult.classList.add('active');}
-function openGift(){const seed=parseSeed()??(Date.now()>>>0);setSeedInUrl(seed);showResult(seed);}
-giftBtn.addEventListener('click',openGift);openBtn.addEventListener('click',openGift);
-againBtn.addEventListener('click',()=>{const seed=Date.now()>>>0;setSeedInUrl(seed);showResult(seed);});
-shareBtn.addEventListener('click',async()=>{const text=`🎁 오늘의 선물 운세 (${todayEl.textContent})\n- ${fortuneText.textContent}\n- 링크: ${location.href}`;try{if(navigator.share){await navigator.share({title:"오늘의 선물 운세",text});}else{await navigator.clipboard.writeText(text);alert("복사 완료! 원하는 곳에 붙여넣기 하세요.");}}catch(_){}}); 
-linkBtn.addEventListener('click',async()=>{const url=location.href;try{await navigator.clipboard.writeText(url);alert('링크가 복사되었습니다!');}catch{prompt('아래 링크를 복사하세요',url);}});
-function goHome(){viewResult.classList.remove('active');viewIntro.classList.add('active');const u=new URL(location.href);u.searchParams.delete('s');history.replaceState(null,'',u);try{giftBtn.focus({preventScroll:true});}catch(_){ }window.scrollTo({top:0,behavior:'smooth'});}
-homeBtn.addEventListener('click',goHome);
-homeBtn.addEventListener('keydown',(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goHome();}});
+/* 별자리별 10개 메시지 */
+const Z = {
+  "양자리":[
+    "시작의 에너지가 강합니다. 먼저 시도해 보세요.",
+    "속도를 내되 마무리를 잊지 않으면 완벽합니다.",
+    "당당한 태도가 설득력을 높입니다.",
+    "작은 승리가 큰 자신감을 키워줘요.",
+    "경쟁보다 ‘나와의 레이스’에 집중해보세요.",
+    "의욕이 넘칠 땐 하나에 올인할 때입니다.",
+    "먼저 연락하면 흐름이 열립니다.",
+    "짧은 실행이 긴 고민을 이깁니다.",
+    "리더십을 발휘할 순간이 옵니다.",
+    "신나는 소식이 당신을 재촉합니다."
+  ],
+  "황소자리":[
+    "꾸준함이 금입니다. 오늘도 작은 루틴을 지켜보세요.",
+    "감각적인 선택이 만족도를 올려줍니다.",
+    "가치 있는 것에만 에너지를 쓰면 평온합니다.",
+    "속도를 늦추면 더 멀리 갑니다.",
+    "안정된 페이스가 최고의 결과를 만듭니다.",
+    "현실적인 기준이 방향을 잡아줍니다.",
+    "소소한 즐거움이 큰 힐링이 됩니다.",
+    "적립·절약이 실속을 챙겨줍니다.",
+    "신중함이 실수를 줄입니다.",
+    "한 번 더 확인하면 걱정이 줄어요."
+  ],
+  "쌍둥이자리":[
+    "소통 운이 상승! 대화에서 답을 얻습니다.",
+    "두 아이디어를 섞으면 멋진 해법이 나와요.",
+    "가벼운 메시지가 좋은 인연을 부릅니다.",
+    "정보의 신뢰도를 마지막에 점검하세요.",
+    "변화가 재미를 더합니다. 관성을 깨보세요.",
+    "짧은 미팅이 긴 문서보다 설득력 있습니다.",
+    "호기심이 인사이트로 이어집니다.",
+    "빠른 피드백이 흐름을 키웁니다.",
+    "유연한 태도가 기회를 확장합니다.",
+    "작은 농담이 분위기를 녹입니다."
+  ],
+  "게자리":[
+    "정서적 교감이 키포인트. 가까운 이들과 따뜻한 시간.",
+    "편안함을 먼저 챙기면 성과가 따라옵니다.",
+    "과거의 기억이 힌트를 줍니다.",
+    "집중보다 회복이 필요한 날일 수 있어요.",
+    "배려가 신뢰를 만들어요.",
+    "감정의 파도엔 작은 휴식이 특효약.",
+    "익숙한 장소에서 아이디어가 떠오릅니다.",
+    "안전망을 확인하면 과감해집니다.",
+    "소소한 집밥/티타임이 컨디션을 올립니다.",
+    "마음의 온도를 지키면 관계가 편안해져요."
+  ],
+  "사자자리":[
+    "스포트라이트! 표현할수록 운이 커집니다.",
+    "자신감 있는 발표가 기회를 부릅니다.",
+    "작은 선행이 큰 응원을 만듭니다.",
+    "주도권을 잡고 방향을 제시해 보세요.",
+    "칭찬이 협력을 이끕니다.",
+    "당신의 매력이 설득의 핵심입니다.",
+    "드레스업/연출이 플러스 요인!",
+    "대담한 목표가 동력을 만듭니다.",
+    "과감한 한 걸음이 돌파구가 됩니다.",
+    "긍정 에너지가 주변을 밝힙니다."
+  ],
+  "처녀자리":[
+    "디테일이 완성도를 좌우합니다. 체크리스트가 행운템.",
+    "정리정돈이 생각도 맑게 해줘요.",
+    "작은 오류를 먼저 잡으면 속도가 붙습니다.",
+    "데이터가 판단을 견고하게 합니다.",
+    "프로세스를 가볍게 다듬어 보세요.",
+    "균형 잡힌 식단/수면이 집중력을 올립니다.",
+    "문서/메일을 한 번 더 검토해요.",
+    "미리 준비한 템플릿이 시간을 아껴줍니다.",
+    "실행 로그가 성장의 증거가 됩니다.",
+    "바른 자세가 컨디션을 지켜줍니다."
+  ],
+  "천칭자리":[
+    "균형 감각이 빛납니다. 모두가 만족할 해법을 찾습니다.",
+    "공정한 태도가 신뢰를 만듭니다.",
+    "미적 감각이 설득에 힘을 보탭니다.",
+    "대화에서 타협점을 발견하게 될 거예요.",
+    "역지사지가 갈등을 녹입니다.",
+    "관계를 정리·정돈하면 마음이 가벼워져요.",
+    "상호이익을 제안해 보세요.",
+    "작은 감사 인사가 큰 동력을 부릅니다.",
+    "선택을 미루지 말고 소거법으로 좁혀보세요.",
+    "완급조절이 성과를 만듭니다."
+  ],
+  "전갈자리":[
+    "몰입력이 최고조. 한 가지를 깊게 파보세요.",
+    "진심 어린 대화가 변화를 만듭니다.",
+    "핵심을 파악하면 갈등이 풀립니다.",
+    "집중 시간에 방해 요소를 차단하세요.",
+    "깊은 기록이 통찰을 남깁니다.",
+    "미스터리를 해소할 키가 당신에게 있습니다.",
+    "의지력이 장애물을 녹입니다.",
+    "단호한 기준이 나를 지켜줍니다.",
+    "감정의 뿌리를 이해하면 편안해져요.",
+    "소수정예 전략이 효과적입니다."
+  ],
+  "사수자리":[
+    "확장과 탐험! 시야를 넓힐수록 기회가 열려요.",
+    "큰 그림을 그리고 작은 실행으로 이어가요.",
+    "낙관이 추진력을 만듭니다.",
+    "여행/야외 활동이 영감을 줍니다.",
+    "새로운 공부가 지평을 넓힙니다.",
+    "모험하되 안전장치도 챙겨요.",
+    "유연한 일정이 행운을 끌어옵니다.",
+    "재미를 섞으면 지속성이 올라갑니다.",
+    "도전의식이 좋은 사람들을 불러옵니다.",
+    "넓은 네트워크에서 기회가 옵니다."
+  ],
+  "염소자리":[
+    "목표지향의 날. 계획표가 힘이 됩니다.",
+    "원칙과 성실함이 보답받습니다.",
+    "조용한 꾸준함이 가장 강력합니다.",
+    "현실적인 마일스톤이 진전을 만듭니다.",
+    "책임감이 신뢰를 쌓아줍니다.",
+    "공들인 만큼 결과가 정직합니다.",
+    "장기전 준비에 유리한 흐름이에요.",
+    "규율이 자유를 만들어 줍니다.",
+    "한 계단씩 안정적으로 올라갑니다.",
+    "기본에 충실할수록 빛이 납니다."
+  ],
+  "물병자리":[
+    "새로운 방식이 통합니다. 실험을 두려워하지 마세요.",
+    "네트워킹에서 뜻밖의 힌트를 얻어요.",
+    "자율성이 창의력을 깨웁니다.",
+    "틀 밖의 아이디어가 환영받습니다.",
+    "오픈소스/레퍼런스가 해결책을 줍니다.",
+    "가벼운 테스트가 큰 리스크를 줄입니다.",
+    "유니크함이 경쟁력입니다.",
+    "디지털 정리가 효율을 올립니다.",
+    "가치관이 맞는 사람과 연결되기 쉬운 날.",
+    "규칙을 알면 예외를 만들 줄 알게 됩니다."
+  ],
+  "물고기자리":[
+    "감수성이 풍부합니다. 직관 메모가 인사이트로.",
+    "작은 친절이 큰 울림으로 돌아옵니다.",
+    "휴식과 몰입의 균형을 잡아보세요.",
+    "음악/예술이 회복을 돕습니다.",
+    "꿈에서 아이디어가 스며듭니다.",
+    "느슨한 산책이 마음을 정리해 줘요.",
+    "공감이 대화를 따뜻하게 합니다.",
+    "경계를 부드럽게 지키는 연습을 해요.",
+    "물 흐르듯 맡기면 해결되는 일도 있어요.",
+    "섬세함이 매력으로 빛납니다."
+  ],
+  "공통":[
+    "작은 시작이 큰 변화를 부릅니다.",
+    "타이밍이 좋습니다. 가볍게 시도해 보세요.",
+    "준비된 곳에 행운이 머뭅니다.",
+    "첫 걸음이 방향을 만듭니다.",
+    "꾸준함이 오늘의 치트키.",
+    "마음의 여유가 선택을 밝게 합니다.",
+    "관찰이 인사이트로 이어집니다.",
+    "정리정돈이 생각까지 맑게 해줘요.",
+    "친절은 늘 좋은 투자입니다.",
+    "하루의 목표를 한 줄로 적어보세요."
+  ]
+};
+
+/* 메시지 선택 */
+function pickMsg(sign){
+  const arr = Z[sign] || Z["공통"];
+  return arr[Math.floor(rnd()*arr.length)];
+}
+
+/* 운세 표시 */
+function showFortune(){
+  const val = birthInput.value;
+  let sign = null;
+  if(val){
+    const d = new Date(val+"T00:00");
+    if(!isNaN(d)) sign = getZodiac(d.getMonth()+1, d.getDate());
+  }
+  const title = sign ? `${sign}` : "오늘의 운세(공통)";
+  zodiacTitle.textContent = title;
+  fortuneText.textContent = pickMsg(sign || "공통");
+  intro.classList.remove("active");
+  result.classList.add("active");
+}
+
+/* 이벤트 */
+showBtn.addEventListener("click", showFortune);
+showBtn.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); showFortune(); }});
+
+/* 공유 & 링크 */
+shareBtn.addEventListener("click", async ()=>{
+  const text = `🔮 ${zodiacTitle.textContent}\n${fortuneText.textContent}`;
+  try{
+    if(navigator.share){ await navigator.share({title:"오늘의 별자리 운세", text}); }
+    else { await navigator.clipboard.writeText(text); alert("복사 완료!"); }
+  }catch(_){}
+});
+linkBtn.addEventListener("click", async ()=>{
+  // 생년월일은 개인정보이므로 링크에는 포함하지 않고, 단순 페이지 링크만 복사
+  const url = location.href.split("?")[0];
+  try{ await navigator.clipboard.writeText(url); alert("링크가 복사되었습니다!"); }
+  catch{ prompt("아래 링크를 복사하세요", url); }
+});
 </script>
 </body>
 </html>
